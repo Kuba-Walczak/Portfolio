@@ -62,15 +62,15 @@ const textureLoader = new THREE.TextureLoader(loaderManager);
 //region
 const loader = new GLTFLoader(loaderManager);
 const dracoLoader = new DRACOLoader(loaderManager);
-dracoLoader.setDecoderPath("/Files/draco/");
+dracoLoader.setDecoderPath("/public/draco/");
 loader.setDRACOLoader(dracoLoader);
 //endregion
 
 //LOAD CUSTOM TEXTURES
 //region
-const cubeMap = new THREE.CubeTextureLoader().setPath("Files/Main/Textures/HDRI/").load(["px.png", "nx.png", "py.png", "ny.png", "pz.png", "nz.png"]);
+const cubeMap = new THREE.CubeTextureLoader().setPath("public/Main/Textures/HDRI/").load(["px.png", "nx.png", "py.png", "ny.png", "pz.png", "nz.png"]);
 
-const textureBake = textureLoader.load("/Files/Main/Textures/Texture.webp");
+const textureBake = textureLoader.load("/public/Main/Textures/Texture.webp");
 textureBake.flipY = false;
 textureBake.colorSpace = THREE.SRGBColorSpace;
 textureBake.minFilter = THREE.LinearFilter;
@@ -93,7 +93,7 @@ let monitorMask = null;
 let monitorPowered = true;
 
 //SPAWN SCENE (static, no raycast)
-loader.load("/Files/Main/Models/SceneCompressed.glb", (glb) => {
+loader.load("/public/Main/Models/SceneCompressed.glb", (glb) => {
   glb.scene.traverse((child) => {
     switch (true) {
       case child.name === "Monitor":
@@ -153,7 +153,7 @@ let portfolioButtonActive = true;
 let filterButtonsActive = false;
 
 //SPAWN ASSETS
-loader.load("/Files/Main/Models/AssetsCompressed.glb", (glb) => {
+loader.load("/public/Main/Models/AssetsCompressed.glb", (glb) => {
   glb.scene.traverse((child) => {
     switch (true) {
       case child.name === "IconGroup":
@@ -183,10 +183,10 @@ loader.load("/Files/Main/Models/AssetsCompressed.glb", (glb) => {
 
   //SETUP ASSETS
   iconArray = [
-    new Icon(projectType.PROGRAMMING, "Files/Kinetic Rush/KineticRushSubmission.mp4", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]),
-    new Icon(projectType.TECHNICAL_ART, "Files/output.mp4", "Project 2", "Description 2", ["blender", "js"]),
-    new Icon(projectType.ART, "Files/Blackwall1001-1030.mp4", "Project 3", "Description 3", ["aftereffects"]),
-    new Icon(projectType.PROGRAMMING, "Files/output.mp4", "Project 4", "Description 4", ["css"])
+    new Icon(projectType.PROGRAMMING, "public/Kinetic Rush/KineticRushSubmission.mp4", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]),
+    new Icon(projectType.TECHNICAL_ART, "public/output.mp4", "Project 2", "Description 2", ["blender", "js"]),
+    new Icon(projectType.ART, "public/Blackwall1001-1030.mp4", "Project 3", "Description 3", ["aftereffects"]),
+    new Icon(projectType.PROGRAMMING, "public/output.mp4", "Project 4", "Description 4", ["css"])
   ];
   placeIcons();
   scrollTrigger();
