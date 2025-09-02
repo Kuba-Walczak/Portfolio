@@ -1,0 +1,49 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# CLion and JetBrains IDEs
+.idea/
+*.iws
+*.iml
+
+# CMake build files
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+# Compiled object files and libraries
+*.o
+*.a
+*.so
+*.dll
+*.lib
+
+# Executables
+*.exe
+
+# Other common temporary files
+*~
+*.swp
