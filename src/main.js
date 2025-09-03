@@ -70,7 +70,7 @@ loader.setDRACOLoader(dracoLoader);
 //region
 const cubeMap = new THREE.CubeTextureLoader().setPath("/Main/Textures/HDRI/").load(["px.png", "nx.png", "py.png", "ny.png", "pz.png", "nz.png"]);
 
-const textureBake = textureLoader.load("/Main/Textures/Texture.webp");
+const textureBake = textureLoader.load("https://PortfolioPullZone.b-cdn.net/LandingPage/Textures/BakedTexture.webp");
 textureBake.flipY = false;
 textureBake.colorSpace = THREE.SRGBColorSpace;
 textureBake.minFilter = THREE.LinearFilter;
@@ -915,7 +915,7 @@ resize();
 // region
 let currentIndex = 0;
 const player = document.querySelector(".VideoPlayer");
-const playlist = ["https://PortfolioPullZone.b-cdn.net/Landing%20Page/Reel/Kinetic%20Rush.webm", "https://PortfolioPullZone.b-cdn.net/Landing%20Page/Reel/Chasms%20Call.webm"];
+const playlist = ["https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/KineticRush.webm", "https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/ChasmsCall.webm"];
 player.src = playlist[currentIndex];
 player.play();
 player.addEventListener("ended", () => {
