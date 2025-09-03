@@ -7,19 +7,19 @@
 
 @font-face {
     font-family: "Inter Thin";
-    src: url("public/Fonts/Inter_28pt-Regular.ttf");
+    src: url("Fonts/Inter_28pt-Regular.ttf");
 }
 @font-face {
     font-family: "Inter Standard";
-    src: url("public/Fonts/Inter_28pt-ExtraBold.ttf");
+    src: url("Fonts/Inter_28pt-ExtraBold.ttf");
 }
 @font-face {
     font-family: "Inter Bold";
-    src: url("public/Fonts/Inter_28pt-Bold.ttf");
+    src: url("Fonts/Inter_28pt-Bold.ttf");
 }
 @font-face {
     font-family: "Inter Bolder";
-    src: url("public/Fonts/Inter_28pt-Black.ttf");
+    src: url("Fonts/Inter_28pt-Black.ttf");
 }
 
 p.TextStyle1 {
