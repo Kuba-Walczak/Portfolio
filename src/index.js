@@ -168,10 +168,10 @@ loader.load("Main/Models/AssetsCompressed.glb", (glb) => {
 
   //SETUP ASSETS
   iconArray = [
-    new Icon(projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/KineticRush4.webm", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]),
-    new Icon(projectType.TECHNICAL_ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 2", "Description 2", ["blender", "js"]),
-    new Icon(projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 3", "Description 3", ["aftereffects"]),
-    new Icon(projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"])
+    //new Icon(projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/KineticRush4.webm", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]),
+    //new Icon(projectType.TECHNICAL_ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 2", "Description 2", ["blender", "js"]),
+    //new Icon(projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 3", "Description 3", ["aftereffects"]),
+    //new Icon(projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"])
   ];
   placeIcons();
   scrollTrigger();
@@ -974,11 +974,13 @@ class Icon {
 
 //ON LOAD
 //region
-setTimeout(() => {
+document.querySelector(".testing2").addEventListener("click", () => {
   finishedLoading = true;
+  document.querySelector(".BackgroundVideo").src = "https://PortfolioPullZone.b-cdn.net/LandingPage/Background.webm";
+  videoPlayer.src = playlist[0];
   videoPlayer.play();
   iconArray.forEach((child) => {child.video.play()});
-}, 5000);
+});
 gsap.set(cameraWrapper.centeredDiv, {xPercent: -50, yPercent: -50, y: 0});
 resize();
 //endregion
@@ -988,7 +990,6 @@ resize();
 let currentIndex = 0;
 const videoPlayer = document.querySelector(".VideoPlayer");
 const playlist = ["https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/KineticRush2.webm", "https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/ChasmsCall2.webm"];
-videoPlayer.src = playlist[currentIndex];
 videoPlayer.addEventListener("ended", () => {
   if (++currentIndex < playlist.length) {
     videoPlayer.src = playlist[currentIndex];

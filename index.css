@@ -320,6 +320,15 @@ div.testing {
     opacity: 0;
 
 }
+div.testing2 {
+    position: absolute;
+    width: 10%;
+    height: 10%;
+    top: 10%;
+    left: 10%;
+    background: white;
+    z-index: 99;
+}
 div.CenteredDiv {
     position: absolute;
     display: flex;
