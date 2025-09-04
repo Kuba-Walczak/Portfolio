@@ -99,7 +99,7 @@ div.html2canvasDiv {
     width: 1000px;
     height: 1000px;
     left: 50%;
-    top: 40%;
+    top: 30%;
     transform: translate(-50%, -50%);
     z-index: 99;
     background: pink;
@@ -157,17 +157,15 @@ div.h2cTextDiv {
 }
 p.h2cTitle {
     position: absolute;
-    top: 81%;
-    left: 30%;
-    transform: translate(-50%, -50%);
+    top: 77%;
+    left: 8%;
     color: rgba(255, 255, 255, 0.7);
     font-size: 30%;
 }
 p.h2cDescription {
     position: absolute;
-    top: 87%;
-    left: 41%;
-    transform: translate(-50%, -50%);
+    top: 85%;
+    left: 8.2%;
     color: rgba(255, 255, 255, 0.7);
     font-size: 15%;
 }
@@ -338,7 +336,14 @@ div.BackgroundVideoDiv {
     width: 100%;
     height: 100%;
 }
-video.BackgroundVideo1 {
+video.BackgroundVideo {
+    position: absolute;
+    width: 100%;
+    height: auto;
+    opacity: 0;
+    pointer-events: none;
+}
+canvas.BackgroundCanvas1 {
     position: absolute;
     width: 110%;
     height: auto;
@@ -350,7 +355,7 @@ video.BackgroundVideo1 {
     z-index: -1;
     opacity: 0.5;
 }
-video.BackgroundVideo2 {
+canvas.BackgroundCanvas2 {
     position: absolute;
     width: 110%;
     height: auto;
@@ -387,8 +392,8 @@ div.HomeButtonIconDivDiv {
 }
 div.HomeButtonIconDiv {
     position: absolute;
-    width: 60%;
-    height: 60%;
+    width: 80%;
+    height: 80%;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -415,7 +420,7 @@ div.ScrollWindowDiv {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    opacity: 0.8;
+    opacity: 0.7;
 }
 div.ScrollDiv {
     position: absolute;
@@ -448,7 +453,7 @@ img.FaceForegroundImage {
 div.SkillDiv {
     position: absolute;
     width: 60%;
-    height: 30%;
+    height: 32%;
     top: 4%;
     left: 4%;
 }
@@ -478,38 +483,19 @@ div.ProgrammingIconDivDiv {
     width: 100%;
     height: 100%;
 }
+p.SkillTitleText {
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14%;
+    opacity: 0;
+}
 div.SkillIconDivDiv2 {
     position: absolute;
     width: 32%;
     height: 100%;
     left: 34%;
-    background:
-            radial-gradient(circle at 0% 100%, black, transparent),
-            radial-gradient(circle at 100% 0%, black, transparent), rgba(var(--main-color-rgb), 0);
-    border-radius: 10px;
-    box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.5);
-}
-div.ToolIconDiv {
-    position: absolute;
-    width: 20%;
-    padding-bottom: 20%;
-    top: 10%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: linear-gradient(to bottom, white, rgba(var(--text-color-rgb), 1), rgba(var(--main-color-rgb), 1));
-    mask-image: url("public/Main/Icons/ToolIcon.svg");
-    mask-size: contain;
-}
-div.ToolIconDivDiv {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-}
-div.SkillIconDivDiv3 {
-    position: absolute;
-    width: 32%;
-    height: 100%;
-    left: 68%;
     background:
             radial-gradient(circle at 0% 100%, black, transparent),
             radial-gradient(circle at 100% 0%, black, transparent), rgba(var(--main-color-rgb), 0);
@@ -528,6 +514,33 @@ div.ArtIconDiv {
     mask-size: cover;
 }
 div.ArtIconDivDiv {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+div.SkillIconDivDiv3 {
+    position: absolute;
+    width: 32%;
+    height: 100%;
+    left: 68%;
+    background:
+            radial-gradient(circle at 0% 100%, black, transparent),
+            radial-gradient(circle at 100% 0%, black, transparent), rgba(var(--main-color-rgb), 0);
+    border-radius: 10px;
+    box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.5);
+}
+div.ToolIconDiv {
+    position: absolute;
+    width: 20%;
+    padding-bottom: 20%;
+    top: 10%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(to bottom, white, rgba(var(--text-color-rgb), 1), rgba(var(--main-color-rgb), 1));
+    mask-image: url("public/Main/Icons/ToolIcon.svg");
+    mask-size: contain;
+}
+div.ToolIconDivDiv {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -560,7 +573,7 @@ p.SkillText {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 5%;
+    font-size: 6%;
     opacity: 0;
 }
 div.CPPDiv {
@@ -576,15 +589,15 @@ div.HTMLDiv {
     left: 68%;
 }
 div.CSSDiv {
-    top: 42%;
+    top: 41%;
     left: 4%;
 }
 div.JSDiv {
-    top: 42%;
+    top: 41%;
     left: 36%;
 }
 div.BASHDiv {
-    top: 42%;
+    top: 41%;
     left: 68%;
 }
 div.THREEJSDiv {
@@ -608,14 +621,14 @@ div.PREMIEREPRODiv {
     left: 68%;
 }
 div.PHOTOSHOPDiv {
-    top: 42%;
+    top: 41%;
     left: 4%;
 }
 div.EducationDiv {
     position: absolute;
     width: 60%;
     height: 20%;
-    top: 35%;
+    top: 37%;
     left: 4%;
     background:
             radial-gradient(circle at 0% 100%, black, transparent),
@@ -670,7 +683,7 @@ div.DescriptionDiv {
     position: absolute;
     width: 60%;
     height: 30%;
-    top: 56%;
+    top: 58%;
     left: 4%;
     background:
             radial-gradient(circle at 0% 100%, black, transparent),
@@ -713,8 +726,8 @@ div.AboutButtonIconDivDiv {
 }
 div.AboutButtonIconDiv {
     position: absolute;
-    width: 80%;
-    height: 80%;
+    width: 70%;
+    height: 70%;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -892,6 +905,13 @@ section.SlotSection {
     z-index: 1;
     pointer-events: none;
     opacity: 0;
+}
+p.SlotText {
+    position: absolute;
+    top: -26%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 50%;
 }
 div.Slot1Div {
     position: absolute;

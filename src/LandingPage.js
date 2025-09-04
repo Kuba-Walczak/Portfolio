@@ -68,7 +68,7 @@ loader.setDRACOLoader(dracoLoader);
 
 //LOAD CUSTOM TEXTURES
 //region
-const cubeMap = new THREE.CubeTextureLoader().setPath("/Main/Textures/HDRI/").load(["px.png", "nx.png", "py.png", "ny.png", "pz.png", "nz.png"]);
+const cubeMap = new THREE.CubeTextureLoader().setPath("https://PortfolioPullZone.b-cdn.net/LandingPage/Textures/").load(["CubeMap.webp", "CubeMap.webp", "CubeMap.webp", "CubeMap.webp", "CubeMap.webp", "CubeMap.webp"]);
 
 const textureBake = textureLoader.load("https://PortfolioPullZone.b-cdn.net/LandingPage/Textures/BakedTexture.webp");
 textureBake.flipY = false;
@@ -76,13 +76,13 @@ textureBake.colorSpace = THREE.SRGBColorSpace;
 textureBake.minFilter = THREE.LinearFilter;
 textureBake.magFilter = THREE.LinearFilter;
 
-const glassMaterial = new THREE.MeshStandardMaterial({
+const glassMaterial = new THREE.MeshBasicMaterial({
   color: 0xffffff,
   envMap: cubeMap,
-  metalness: 1,
-  roughness: 0.15,
+  combine: THREE.MultiplyOperation,
+  reflectivity: 1,
   transparent: true,
-  opacity: 0.3,
+  opacity: 0.6,
 });
 //endregion
 
@@ -90,7 +90,6 @@ const glassMaterial = new THREE.MeshStandardMaterial({
 let monitorCover = null;
 let monitorButton = null;
 let monitorMask = null;
-let monitorPowered = true;
 
 //SPAWN SCENE (static, no raycast)
 loader.load("/Main/Models/SceneCompressed.glb", (glb) => {
@@ -169,8 +168,8 @@ loader.load("/Main/Models/AssetsCompressed.glb", (glb) => {
         child.material = new THREE.MeshBasicMaterial({visible: false});
         break;
       case child.name.includes("Wireframe"):
-        child.material = new THREE.MeshBasicMaterial({color: mainColorNormalized, opacity: 0.03, transparent: true});
-        for (let i = 0; i < 15; ++i) {
+        child.material = new THREE.MeshBasicMaterial({color: mainColorNormalized, opacity: 0.02, transparent: true});
+        for (let i = 0; i < 5; ++i) {
           const clone = child.clone();
           primitiveArray.push(clone);
         }
@@ -183,19 +182,19 @@ loader.load("/Main/Models/AssetsCompressed.glb", (glb) => {
 
   //SETUP ASSETS
   iconArray = [
-    new Icon(projectType.PROGRAMMING, "/Kinetic Rush/KineticRushSubmission.mp4", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]),
-    new Icon(projectType.TECHNICAL_ART, "/output.mp4", "Project 2", "Description 2", ["blender", "js"]),
-    new Icon(projectType.ART, "/Blackwall1001-1030.mp4", "Project 3", "Description 3", ["aftereffects"]),
-    new Icon(projectType.PROGRAMMING, "/output.mp4", "Project 4", "Description 4", ["css"])
+    new Icon(projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/KineticRush4.webm", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]),
+    new Icon(projectType.TECHNICAL_ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 2", "Description 2", ["blender", "js"]),
+    new Icon(projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 3", "Description 3", ["aftereffects"]),
+    new Icon(projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"])
   ];
   placeIcons();
   scrollTrigger();
 
   primitiveArray.forEach((primitive) => {
     if (Math.random() > 0.8)
-      randomizePosition(primitive, -1, 1, -1, 0.5,0.2, 3);
+      randomizePosition(primitive, -1, 1, -1, 0.5,0.2, 1);
     else
-      randomizePosition(primitive, -1, 1, -1, 0.5,0.2, 3);
+      randomizePosition(primitive, -1, 1, -1, 0.5,0.2, 1);
     ambientAnimation(primitive);
     scene.add(primitive);
   });
@@ -217,13 +216,38 @@ let raycastResult = null;
 let previousRaycastResult = null;
 let userLock = false;
 let animationLock = null;
+
 let divPositionMultiplier = null;
+
 let monitorDivHover = false;
 let portfolioButtonHover = false;
 let filterButtonHover = false;
+
+let monitorPowered = true;
 let monitorActive = false;
+let scrollingDiscovered = false;
+let scrollShowInterval = null;
+
+const backgroundVideo = document.querySelector(".BackgroundVideo");
+const backgroundCanvas1 = document.querySelector(".BackgroundCanvas1");
+const backgroundCanvas2 = document.querySelector(".BackgroundCanvas2");
+[backgroundCanvas1, backgroundCanvas2].forEach(canvas => {
+  canvas.width = 2560;
+  canvas.height = 2560;
+});
+let click = {
+  target: null,
+  time: performance.now()
+};
+let lastClick = null;
 
 function render() {
+
+  [backgroundCanvas1, backgroundCanvas2].forEach((canvas) => {
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    canvas.getContext("2d").drawImage(backgroundVideo, 0, 0, canvas.width, canvas.height);
+  });
+
   if (!userLock) {
     raycaster.setFromCamera(pointer, camera);
     const raycast = raycaster.intersectObjects(raycastTargetArray, true);
@@ -287,11 +311,6 @@ function render() {
             }, null, ">")
             .to(iconGroup.userData.iconOverlay.material, {opacity: 1, duration: 1, overwrite: "auto"}, "<")
             .to(iconGroup.position, {z: iconGroup.userData.originalPosition.z, duration: 0.5, overwrite: "auto"}, "<");
-            /*iconGroupGroup.children.forEach((child) => {
-              if (child !== iconGroup) {
-                gsap.to(child.position, {z: iconGroupSpawnerInitialPosition.z, duration: 1, overwrite: "auto"});
-              }
-            });*/
             break;
           case previousRaycastResult.name === "MonitorButton" && monitorPowered:
             gsap.to(monitorButton.material.color, {r: mainColorNormalized.r, g: mainColorNormalized.g, b: mainColorNormalized.b, duration: 1, overwrite: "auto"});
@@ -312,13 +331,8 @@ function render() {
             const tl = gsap.timeline();
             iconGroup.userData.tl = tl;
             tl.to(iconGroup.userData.iconHover.material, {opacity: 1, duration: 1}).addLabel("selected").call(() => {
-              /*iconGroupGroup.children.forEach((child) => {
-                if (child !== iconGroup) {
-                  gsap.to(child.position, {z: 0.1, duration: 1, overwrite: "auto"});
-                }
-              });*/
             })
-            .to(iconGroup.position, {z: -0.1, duration: 0.5, overwrite: "auto"}, ">")
+            .to(iconGroup.position, {z: -0.15, duration: 0.5, overwrite: "auto"}, ">")
             .to(iconGroup.scale, {x: iconScale * iconGroup.userData.aspectRatio, duration: 1, overwrite: "auto"}, "<")
             .to(iconGroup.userData.iconScreen.material.map.repeat, {x: 1, y: 1, duration: 1, overwrite: "auto"}, "<")
             .to(iconGroup.userData.iconScreen.material.map.offset, {x: 0, y: 0, duration: 1, overwrite: "auto"}, "<")
@@ -356,10 +370,10 @@ function render() {
 window.addEventListener("wheel", (event) => {
   if (!userLock)
     if (monitorDivHover && monitorPowered && monitorActive) {
-      scrollMonitorBy(event.deltaY * 0.2, 0.5)
+      scrollMonitorBy(event.deltaY * 0.2, 0.5, true)
     }
     else
-      scrollCameraBy(event.deltaY * 0.001, 0.5);
+      scrollCameraBy(event.deltaY * 0.0007, 0.5);
 });
 
 window.addEventListener("mousemove", (event) => {
@@ -375,35 +389,51 @@ window.addEventListener("mousedown", (event) => {
       switch (true) {
         case raycastResult.parent.name === "IconGroup":
           const iconGroup = raycastResult.parent;
-          iconGroup.userData.tl.kill();
+          click.target = iconGroup;
+          click.time = performance.now();
           document.body.style.cursor = "grabbing";
           if (iconGroup.userData.tl && iconGroup.userData.tl.isActive()) {
             iconGroup.userData.tl.kill();
           }
-          const tl = gsap.timeline();
-          iconGroup.userData.tl = tl;
-          tl.to(iconGroup.scale, {x: iconScale / 1.5, y: iconScale / 1.5, z: 1, duration: 0.5, overwrite: "auto"})
-            .to(iconGroup.position, {z: -0.1, duration: 0.5, overwrite: "auto"}, "<")
-            .to(iconGroup.userData.iconHover.material, {opacity: 0, duration: 1, overwrite: "auto"}, "<")
-            .to(iconGroup.userData.iconOverlay.material, {opacity: 1, duration: 1, overwrite: "auto"}, "<")
-            .to(iconGroup.userData.iconScreen.material.map.repeat, {x: iconGroup.userData.screenTextureRepeatX, y: 1, duration: 0.5, overwrite: "auto"}, "<")
-            .to(iconGroup.userData.iconScreen.material.map.offset, {x: iconGroup.userData.screenTextureOffsetX, y: 0, duration: 0.5, overwrite: "auto"}, "<")
-            .to(iconGroup.userData.iconScreen.material, {opacity: 0.5, duration: 1, overwrite: "auto"}, "<").call(() => {
-            animationLock = null;
-          }, null, ">");
-          /*iconGroupGroup.children.forEach((child) => {
-            if (child !== iconGroup) {
-              gsap.to(child.position, {z: 0.1, duration: 1, overwrite: "auto"});
-            }
-          });*/
+          if (lastClick && lastClick.target === click.target && (click.time - lastClick.time) < 1000 && monitorPowered) {
+            document.body.style.cursor = "default";
+            userLock = true;
+            animationLock = iconGroup;
+            const tl = gsap.timeline();
+            const slotDiv = document.querySelector(".Slot2Div");
+            gsap.to(iconGroup.position, {x: 0, y: 0, z: -0.1, duration: 1, overwrite: "auto"});
+            tl.to(iconGroup.scale, {x: 0, y: 0, z: 0, duration: 1, overwrite: "auto"}).to(slotDiv, {"--radius": "150%", duration: 1.5, overwrite: "auto"});
+            playVideo();
+          }
+          else {
+            const tl = gsap.timeline();
+            iconGroup.userData.tl = tl;
+            tl.to(iconGroup.scale, {x: iconScale / 1.5, y: iconScale / 1.5, z: 1, duration: 0.5, overwrite: "auto"})
+              .to(iconGroup.position, {z: -0.15, duration: 0.5, overwrite: true}, "<")
+              .to(iconGroup.userData.iconHover.material, {opacity: 0, duration: 1, overwrite: "auto"}, "<")
+              .to(iconGroup.userData.iconOverlay.material, {opacity: 1, duration: 1, overwrite: "auto"}, "<")
+              .to(iconGroup.userData.iconScreen.material.map.repeat, {x: iconGroup.userData.screenTextureRepeatX, y: 1, duration: 0.5, overwrite: "auto"}, "<")
+              .to(iconGroup.userData.iconScreen.material.map.offset, {x: iconGroup.userData.screenTextureOffsetX, y: 0, duration: 0.5, overwrite: "auto"}, "<")
+              .to(iconGroup.userData.iconScreen.material, {opacity: 0.5, duration: 1, overwrite: "auto"}, "<").call(() => {
+              animationLock = null;
+            }, null, ">");
+          }
           if (monitorPowered) {
             const homeSection = document.querySelector(".HomeSection");
+            const aboutSection = document.querySelector(".AboutSection");
             const slotSection = document.querySelector(".SlotSection");
             gsap.to(homeSection, {opacity: 0, duration: 1});
+            gsap.to(aboutSection, {opacity: 0, duration: 1});
             gsap.to(slotSection, {opacity: 1, duration: 1});
-            scrollCameraTo(0, 3);
+            if (!userLock)
+              scrollCameraTo(0, 3);
+          }
+          else {
+            const color2 = new THREE.Color(0xff0000);
+            gsap.to(monitorButton.material.color, {r: color2.r, g: color2.g, b: color2.b, duration: 0.2, overwrite: "auto"});
           }
           dragging = iconGroup;
+          lastClick = {target: click.target, time: click.time};
           break;
         case raycastResult.name === "MonitorButton":
           monitorToggle();
@@ -420,7 +450,7 @@ window.addEventListener("mousedown", (event) => {
 
 window.addEventListener("mouseup", () => {
   mouseDown = false;
-  if (dragging) {
+  if (dragging && !userLock) {
     switch (true) {
       case dragging.name === "IconGroup":
         if (dragging.position.distanceTo(monitorCover.position) < 0.25 && monitorPowered) {
@@ -429,29 +459,29 @@ window.addEventListener("mouseup", () => {
           animationLock = dragging;
           const tl = gsap.timeline();
           const slotDiv = document.querySelector(".Slot2Div");
-          gsap.to(dragging.position, {x: 0, y: 0, z: 0, duration: 0.5, ease: "back"});
-          tl.to(dragging.scale, {x: 0, y: 0, z: 0, duration: 0.5, ease: "back"}).to(slotDiv, {"--radius": "150%", duration: 1.5});
-          //gsap.to(dragging.scale, {x: 1, y: 1, z: 1, duration: 0.1});
-          //gsap.to(dragging.rotation, {x:0, y: 0, z: 0, duration: 1});
+          gsap.to(dragging.position, {x: 0, y: 0, z: 0, duration: 0.5, overwrite: "auto"});
+          tl.to(dragging.scale, {x: 0, y: 0, z: 0, duration: 0.5, overwrite: "auto"}).to(slotDiv, {"--radius": "150%", duration: 1.5, overwrite: "auto"});
           playVideo();
         }
         else {
           document.body.style.cursor = "grab";
           const tl = gsap.timeline();
-          tl.to(dragging.position, {x: dragging.userData.originalPosition.x, y: dragging.userData.originalPosition.y, duration: 0.5, ease: "back"})
-            .to(dragging.position, {z: dragging.userData.originalPosition.z, duration: 0.5});
-          gsap.to(dragging.rotation, {x:0, y: 0, z: 0, duration: 0.5});
-          /*iconGroupGroup.children.forEach((child) => {
-            if (child !== dragging) {
-              gsap.to(child.position, {z: iconGroupSpawnerInitialPosition.z, duration: 1, overwrite: "auto"});
-            }
-          });*/
+          tl.to(dragging.position, {x: dragging.userData.originalPosition.x, y: dragging.userData.originalPosition.y, duration: 0.5, ease: "back", overwrite: "auto"})
+            .to(dragging.position, {z: dragging.userData.originalPosition.z, duration: 0.5, overwrite: "auto"});
+          gsap.to(dragging.rotation, {x: 0, y: 0, z: 0, duration: 0.5, overwrite: "auto"});
           if (monitorPowered) {
             const homeSection = document.querySelector(".HomeSection");
+            const aboutSection = document.querySelector(".AboutSection");
             const slotSection = document.querySelector(".SlotSection");
-            gsap.to(homeSection, {opacity: 1, duration: 1});
+            if (monitorActive)
+              gsap.to(aboutSection, {opacity: 1, duration: 1});
+            else
+              gsap.to(homeSection, {opacity: 1, duration: 1});
             gsap.to(slotSection, {opacity: 0, duration: 1});
-            scrollCameraTo(-0.45, 3);
+            scrollCameraTo(-maxScroll, 3);
+          }
+          else {
+            gsap.to(monitorButton.material.color, {r: 0, g: 0, b: 0, duration: 1, overwrite: "auto"});
           }
         }
         break;
@@ -506,7 +536,7 @@ function scrollTrigger() {
 
   //PORTFOLIO BUTTON TEXT
   const portfolioButtonTextDiv = document.querySelector(".PortfolioButtonTextDiv");
-  const portfolioButtonTextStart = 0;
+  const portfolioButtonTextStart = 0.4;
   const portfolioButtonTextEnd = 0.7;
   let portfolioButtonTextState = (portfolioButtonTextEnd - cameraPositionNormalized) / (portfolioButtonTextEnd - portfolioButtonTextStart);
   switch (true) {
@@ -525,8 +555,8 @@ function scrollTrigger() {
 
   //PORTFOLIO BUTTON
   const portfolioButtonDiv = document.querySelector(".PortfolioButtonDiv");
-  const portfolioButtonDivStart = 0;
-  const portfolioButtonDivEnd = 0.4;
+  const portfolioButtonDivStart = 0.4;
+  const portfolioButtonDivEnd = 0.6;
   let portfolioButtonDivState = (cameraPositionNormalized - portfolioButtonDivStart) / (portfolioButtonDivEnd - portfolioButtonDivStart);
   switch (true) {
     case cameraPositionNormalized < portfolioButtonDivStart: portfolioButtonDivState = 0; break;
@@ -551,15 +581,13 @@ function scrollTrigger() {
     }
   }
   homeButtonDiv.style.opacity = homeButtonIconState;
-  homeButtonDiv.style.filter = `blur(${(1 - homeButtonIconState)}vh)`;
   portfolioButtonActive = portfolioButtonDivState < 0.1;
   aboutButtonDiv.style.opacity = homeButtonIconState;
-  aboutButtonDiv.style.filter = `blur(${(1 - homeButtonIconState)}vh)`;
 
   //FILTER BUTTONS
   const filterTextDivDiv = document.querySelector(".FilterDivDiv");
-  const filterTextDivDivStart = 0.3;
-  const filterTextDivDivEnd = 0.7;
+  const filterTextDivDivStart = 0.5;
+  const filterTextDivDivEnd = 0.8;
   let filterTextDivDivState = (cameraPositionNormalized - filterTextDivDivStart) / (filterTextDivDivEnd - filterTextDivDivStart);
   switch (true) {
     case cameraPositionNormalized < filterTextDivDivStart: {
@@ -588,8 +616,10 @@ function scrollTrigger() {
   if (!portfolioButtonActive && portfolioButtonHover && !filterButtonHover && !dragging && !userLock) {
     document.body.style.cursor = "default";
   }
-  if (!filterButtonsActive && !portfolioButtonActive && filterButtonHover && !dragging && !userLock)
+  if (!filterButtonsActive && !portfolioButtonActive && filterButtonHover && !dragging && !userLock) {
     document.body.style.cursor = "default";
+    gsap.to(filterButtonHover, {backgroundColor: "rgba(255, 255, 255, 0.05)", ease: "back", duration: 0.2, overwrite: "auto"});
+  }
 }
 
 function scrollCameraBy(deltaY, duration) {
@@ -613,7 +643,12 @@ function scrollCameraTo(Y, duration) {
   gsap.to(cameraWrapper.centeredDiv, {y: Y * divPositionMultiplier, duration: duration, overwrite: "auto"});
 }
 
-function scrollMonitorBy(deltaY, duration) {
+function scrollMonitorBy(deltaY, duration, boolean) {
+  if (boolean && deltaY > 0) {
+    scrollingDiscovered = true;
+    clearInterval(scrollShowInterval);
+    scrollShowInterval = null;
+  }
   const afterScroll = cameraWrapper.scrollDiv.offsetTop / cameraWrapper.scrollDiv.parentElement.clientHeight * -100 + deltaY;
   if (afterScroll <= 0) {
     gsap.to(cameraWrapper.scrollDiv, {top: "0%", duration: duration, overwrite: "auto"});
@@ -675,13 +710,31 @@ function monitorToggle() {
   if (monitorPowered) {
     monitorCover.material.visible = true;
     gsap.killTweensOf(monitorButton.material.color);
-    monitorButton.material.color.set(0x000000);
+    const color = new THREE.Color(0x000000);
+    gsap.set(monitorButton.material.color, {r: color.r, g: color.g, b: color.b, overwrite: "auto"});
     monitorPowered = false;
   }
   else {
     monitorCover.material.visible = false;
-    monitorButton.material.color.set(0xff0000);
+    const color = new THREE.Color(0xff0000);
+    gsap.set(monitorButton.material.color, {r: color.r, g: color.g, b: color.b, overwrite: "auto"});
     monitorPowered = true;
+  }
+}
+
+function monitorState(boolean) {
+  if (boolean) {
+    monitorActive = true;
+    if (!scrollingDiscovered && !scrollShowInterval)
+      scrollShowInterval = setInterval(() => {
+        scrollMonitorBy(5, 2);
+        setTimeout(() => scrollMonitorBy(-5, 0.5), 2000);
+      }, 5000);
+  }
+  else {
+    monitorActive = false;
+    clearInterval(scrollShowInterval);
+    scrollShowInterval = null;
   }
 }
 
@@ -694,7 +747,7 @@ function placeIcons() {
     iconGroupGroup.children.forEach((child) => {
       gsap.killTweensOf(child.position);
       gsap.killTweensOf(child.scale);
-      gsap.to(child.scale, {x: 0, y: 0, z: 0, duration: 0.2, override: "auto", onComplete: () => {
+      gsap.to(child.scale, {x: 0, y: 0, z: 0, duration: 0.2, overwrite: "auto", onComplete: () => {
           iconGroupGroup.remove(child);
           spawnIcons();
         }
@@ -726,8 +779,9 @@ function spawnIcons() {
         iconGroupSpawnerCurrentPosition.x -= iconGapHorizontal;
         iconGroupGroup.add(iconGroup.object);
         iconGroup.object.rotation.z = Math.PI / 4;
-        gsap.to(iconGroup.object.rotation, {x: iconRotation, y: 0, z: 0, duration: 0.3, ease: "back", override: "auto"})
-        gsap.to(iconGroup.object.scale, {x: iconScale, y: iconScale, z: 1, duration: 0.5, ease: "back(0.5)", override: "auto"});
+        iconGroup.object.rotation.x = Math.PI / 2;
+        gsap.to(iconGroup.object.rotation, {x: iconRotation, y: 0, z: 0, duration: 0.3, ease: "back", overwrite: "auto"})
+        gsap.to(iconGroup.object.scale, {x: iconScale, y: iconScale, z: 1, duration: 0.5, ease: "back(0.5)", overwrite: "auto"});
       }
     });
   });
@@ -742,7 +796,7 @@ class Icon {
   constructor(type, videoPath, title, description, tags = []) {
     this.type = type;
     this.originalPosition = new THREE.Vector3();
-    this.object = iconComponentGroup.clone(true);
+    this.object = iconComponentGroup.clone();
     this.object.scale.set(iconScale, iconScale, 1);
     this.object.rotation.x = iconRotation;
     this.object.userData = this;
@@ -757,20 +811,22 @@ class Icon {
 
     //ICON SCREEN
     this.video = document.createElement("video");
+    this.video.crossOrigin = "anonymous";
     this.video.src = videoPath;
+    this.video.preload = "auto";
     this.video.loop = true;
     this.video.muted = true;
     this.video.playsInline = true;
-    this.videoTexture = new THREE.VideoTexture(this.video);
-    this.videoTexture.flipY = false;
-    this.videoTexture.colorSpace = THREE.SRGBColorSpace;
-    this.videoTexture.minFilter = THREE.LinearFilter;
-    this.videoTexture.magFilter = THREE.LinearFilter;
-    this.videoTexture.wrapS = THREE.RepeatWrapping;
-    this.videoTexture.wrapT = THREE.RepeatWrapping;
-    this.videoTexture.generateMipmaps = false;
-    this.iconScreen.material = new THREE.MeshBasicMaterial({map: this.videoTexture, opacity: 0.5, transparent: true, side: THREE.DoubleSide});
     this.video.addEventListener("loadedmetadata", () => {
+      this.videoTexture = new THREE.VideoTexture(this.video);
+      this.videoTexture.flipY = false;
+      this.videoTexture.colorSpace = THREE.SRGBColorSpace;
+      this.videoTexture.minFilter = THREE.LinearFilter;
+      this.videoTexture.magFilter = THREE.LinearFilter;
+      this.videoTexture.wrapS = THREE.RepeatWrapping;
+      this.videoTexture.wrapT = THREE.RepeatWrapping;
+      this.videoTexture.generateMipmaps = false;
+      this.iconScreen.material = new THREE.MeshBasicMaterial({map: this.videoTexture, opacity: 0.5, transparent: true, side: THREE.DoubleSide});
       this.aspectRatio = this.video.videoWidth / this.video.videoHeight;
       this.screenTextureRepeatX = 1 / this.aspectRatio;
       this.screenTextureOffsetX = (1 - 1 / this.aspectRatio) / 2;
@@ -794,7 +850,7 @@ class Icon {
       const texture = new THREE.CanvasTexture(glowCompCanvas);
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
-      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      texture.anisotropy = 1;
       texture.flipY = false;
       texture.colorSpace = THREE.SRGBColorSpace;
       this.iconGlow.material = new THREE.MeshBasicMaterial({map: texture, transparent: true, depthWrite: false});
@@ -840,7 +896,7 @@ class Icon {
       html2canvas(h2cBorderDiv, {scale: window.devicePixelRatio, backgroundColor: null, useCORS: true, width: h2cBorderDiv.offsetWidth, height: h2cBorderDiv.offsetHeight})
     ]).then(([backgroundCanvas, textCanvas, foregroundCanvas, borderCanvas]) => {
 
-      const textCompCanvas = document.createElement("canvas");
+      let textCompCanvas = document.createElement("canvas");
       textCompCanvas.width = 1000;
       textCompCanvas.height = 1000;
 
@@ -849,14 +905,14 @@ class Icon {
       textCompCanvas.getContext("2d").filter = "none";
       textCompCanvas.getContext("2d").drawImage(textCanvas, 0, 0);
 
-      const backgroundCompCanvas = document.createElement("canvas");
+      let backgroundCompCanvas = document.createElement("canvas");
       backgroundCompCanvas.width = 1000;
       backgroundCompCanvas.height = 1000;
 
       backgroundCompCanvas.getContext("2d").drawImage(backgroundCanvas, 0, 0);
       backgroundCompCanvas.getContext("2d").drawImage(textCompCanvas, 0, 0);
 
-      const foregroundCompCanvas = document.createElement("canvas");
+      let foregroundCompCanvas = document.createElement("canvas");
       foregroundCompCanvas.width = 1000;
       foregroundCompCanvas.height = 1000;
 
@@ -865,7 +921,7 @@ class Icon {
       foregroundCompCanvas.getContext("2d").filter = "blur(1px)";
       foregroundCompCanvas.getContext("2d").drawImage(foregroundCanvas, 0, 0);
 
-      const borderCompCanvas = document.createElement("canvas");
+      let borderCompCanvas = document.createElement("canvas");
       borderCompCanvas.width = 1000;
       borderCompCanvas.height = 1000;
 
@@ -874,7 +930,7 @@ class Icon {
       borderCompCanvas.getContext("2d").filter = "none";
       borderCompCanvas.getContext("2d").drawImage(borderCanvas, 0, 0);
 
-      const finalCompCanvas = document.createElement("canvas");
+      let finalCompCanvas = document.createElement("canvas");
       finalCompCanvas.width = 1000;
       finalCompCanvas.height = 1000;
 
@@ -882,13 +938,23 @@ class Icon {
       finalCompCanvas.getContext("2d").drawImage(backgroundCompCanvas, 0, 0);
       finalCompCanvas.getContext("2d").drawImage(borderCompCanvas, 0, 0);
 
-      const texture2 = new THREE.CanvasTexture(finalCompCanvas);
-      texture2.minFilter = THREE.LinearFilter;
-      texture2.magFilter = THREE.LinearFilter;
-      texture2.anisotropy = renderer.capabilities.getMaxAnisotropy();
-      texture2.flipY = false;
-      texture2.colorSpace = THREE.SRGBColorSpace;
-      this.iconOverlay.material = new THREE.MeshBasicMaterial({map: texture2, transparent: true});
+      backgroundCanvas = null;
+      textCanvas = null;
+      foregroundCanvas = null;
+      borderCanvas = null;
+
+      textCompCanvas = null;
+      backgroundCompCanvas = null;
+      foregroundCompCanvas = null;
+      borderCompCanvas = null;
+
+      const texture = new THREE.CanvasTexture(finalCompCanvas);
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.anisotropy = 1;
+      texture.flipY = false;
+      texture.colorSpace = THREE.SRGBColorSpace;
+      this.iconOverlay.material = new THREE.MeshBasicMaterial({map: texture, transparent: true});
     });
 
     //ICON HOVER
@@ -897,7 +963,7 @@ class Icon {
       const texture = new THREE.CanvasTexture(hoverCanvas);
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
-      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      texture.anisotropy = 1;
       texture.flipY = false;
       texture.colorSpace = THREE.SRGBColorSpace;
       this.iconHover.material = new THREE.MeshBasicMaterial({map: texture, transparent: true, opacity: 0});
@@ -915,7 +981,7 @@ resize();
 // region
 let currentIndex = 0;
 const player = document.querySelector(".VideoPlayer");
-const playlist = ["https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/KineticRush.webm", "https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/ChasmsCall.webm"];
+const playlist = ["https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/KineticRush2.webm", "https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/ChasmsCall2.webm"];
 player.src = playlist[currentIndex];
 player.play();
 player.addEventListener("ended", () => {
@@ -956,39 +1022,39 @@ monitorDiv.addEventListener("mouseleave", () => {
 
 //SKILL HOVER
 //region
-const skillDiv = document.querySelector(".SkillDiv");
-const skillText = document.querySelectorAll(".SkillText");
-const skillIconImage = document.querySelectorAll(".SkillIconImage");
-const skillTextIcon = document.querySelectorAll(".SkillTextIcon");
-
-skillDiv.addEventListener("mouseenter", () => {
-  skillText.forEach((child) => {
-    gsap.to(child, {opacity: 1, duration: 0.2, overwrite: "auto"});
+document.querySelectorAll(".SkillIconDivDiv").forEach((child) => {
+  child.addEventListener("mouseenter", () => {
+    gsap.to(child.querySelectorAll(".SkillTitleText"), {opacity: 1, duration: 0.2, overwrite: "auto"});
+    gsap.to(child.querySelectorAll(".SkillTitleIconDiv"), {opacity: 0, duration: 0.2, overwrite: "auto"});
   });
-  skillIconImage.forEach((child) => {
-    gsap.to(child, {opacity: 0, duration: 0.2, overwrite: "auto"});
-  });
-  skillTextIcon.forEach((child) => {
-    gsap.to(child, {opacity: 0, duration: 0.2, overwrite: "auto"});
+  child.addEventListener("mouseleave", () => {
+    gsap.to(child.querySelectorAll(".SkillTitleText"), {opacity: 0, duration: 0.2, overwrite: "auto"});
+    gsap.to(child.querySelectorAll(".SkillTitleIconDiv"), {opacity: 1, duration: 0.2, overwrite: "auto"});
   });
 });
-skillDiv.addEventListener("mouseleave", () => {
-    skillText.forEach((child) => {
-      gsap.to(child, {opacity: 0, duration: 0.2, overwrite: "auto"});
-    });
-    skillIconImage.forEach((child) => {
-      gsap.to(child, {opacity: 1, duration: 0.2, overwrite: "auto"});
-    });
-    skillTextIcon.forEach((child) => {
-      gsap.to(child, {opacity: 1, duration: 0.2, overwrite: "auto"});
-    });
+
+document.querySelectorAll(".SkillIconDiv").forEach((child) => {
+  child.addEventListener("mouseenter", () => {
+    gsap.to(child.querySelectorAll(".SkillIconImage"), {opacity: 0, duration: 0.2, overwrite: "auto"});
+    gsap.to(child.querySelectorAll(".SkillTextIcon"), {opacity: 0, duration: 0.2, overwrite: "auto"});
+    gsap.to(child.querySelectorAll(".SkillText"), {opacity: 1, duration: 0.2, overwrite: "auto"});
+  });
+  child.addEventListener("mouseleave", () => {
+    gsap.to(child.querySelectorAll(".SkillIconImage"), {opacity: 1, duration: 0.2, overwrite: "auto"});
+    gsap.to(child.querySelectorAll(".SkillTextIcon"), {opacity: 1, duration: 0.2, overwrite: "auto"});
+    gsap.to(child.querySelectorAll(".SkillText"), {opacity: 0, duration: 0.2, overwrite: "auto"});
+  });
 });
 //endregion
 
 //NAVIGATION BUTTONS
 //region
 const portfolioButtonDiv = document.querySelector(".PortfolioButtonDiv");
-portfolioButtonDiv.addEventListener("click", () => {if (portfolioButtonActive && !userLock) scrollCameraTo(-0.45, 2)});
+portfolioButtonDiv.addEventListener("click", () => {if (portfolioButtonActive && !userLock) {
+  gsap.set(portfolioButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
+  gsap.to(portfolioButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
+  scrollCameraTo(-maxScroll, 3)
+}});
 
 const homeSection = document.querySelector(".HomeSection");
 const aboutSection = document.querySelector(".AboutSection");
@@ -996,7 +1062,9 @@ const aboutSection = document.querySelector(".AboutSection");
 const homeButtonDiv = document.querySelector(".HomeButtonDiv");
 homeButtonDiv.addEventListener("click", () => {
   if (portfolioButtonActive && !userLock) {
-    monitorActive = false;
+    gsap.set(homeButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
+    gsap.to(homeButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
+    monitorState(false);
     gsap.to(homeSection, {opacity: 1, duration: 0.5});
     gsap.to(aboutSection, {opacity: 0, duration: 0.5});
   }});
@@ -1004,7 +1072,9 @@ homeButtonDiv.addEventListener("click", () => {
 const aboutButtonDiv = document.querySelector(".AboutButtonDiv");
 aboutButtonDiv.addEventListener("click", () => {
   if (portfolioButtonActive && !userLock) {
-    monitorActive = true;
+    gsap.set(aboutButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
+    gsap.to(aboutButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
+    monitorState(true);
     gsap.to(aboutSection, {opacity: 1, duration: 0.5});
     gsap.to(homeSection, {opacity: 0, duration: 0.5})
   }
@@ -1016,6 +1086,8 @@ aboutButtonDiv.addEventListener("click", () => {
 const filter1ButtonDiv = document.querySelector(".Filter1Div");
 filter1ButtonDiv.addEventListener("click", () => {
 if (filterButtonsActive) {
+  gsap.set(filter1ButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
+  gsap.to(filter1ButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
   const filterIcon1Div = document.querySelectorAll(".FilterIcon1Div");
   if (activeFilters.PROGRAMMING) {
     activeFilters.PROGRAMMING = false;
@@ -1031,6 +1103,8 @@ else {
 const filter2ButtonDiv = document.querySelector(".Filter2Div");
 filter2ButtonDiv.addEventListener("click", () => {
   if (filterButtonsActive) {
+    gsap.set(filter2ButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
+    gsap.to(filter2ButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
     const filterIcon2Div = document.querySelectorAll(".FilterIcon2Div");
     if (activeFilters.TECHNICAL_ART) {
       activeFilters.TECHNICAL_ART = false;
@@ -1046,6 +1120,8 @@ filter2ButtonDiv.addEventListener("click", () => {
 const filter3ButtonDiv = document.querySelector(".Filter3Div");
 filter3ButtonDiv.addEventListener("click", () => {
   if (filterButtonsActive) {
+    gsap.set(filter3ButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
+    gsap.to(filter3ButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
     const filterIcon3Div = document.querySelectorAll(".FilterIcon3Div");
     if (activeFilters.ART) {
       activeFilters.ART = false;
@@ -1064,7 +1140,7 @@ filter3ButtonDiv.addEventListener("click", () => {
     portfolioButtonHover = button;
     if (portfolioButtonActive && !dragging && !userLock) {
       document.body.style.cursor = "pointer";
-      gsap.to(button, {backgroundColor: "rgba(255, 255, 255, 0.1)", ease: "back", duration: 0.2, overwrite: "auto"});
+      gsap.to(button, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.2, overwrite: "auto"});
     }});
   button.addEventListener("mouseleave", () => {
     portfolioButtonHover = null;
@@ -1080,12 +1156,12 @@ filter3ButtonDiv.addEventListener("click", () => {
     filterButtonHover = button;
     if (filterButtonsActive && !dragging && !userLock) {
       document.body.style.cursor = "pointer";
-      gsap.to(button, {backgroundColor: "rgba(255, 255, 255, 0.1)", ease: "back", duration: 0.2, overwrite: "auto"});
+      gsap.to(button, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.2, overwrite: "auto"});
     }});
   button.addEventListener("mouseleave", () => {
     filterButtonHover = null;
     gsap.to(button, {backgroundColor: "rgba(255, 255, 255, 0.05)", duration: 0.2, overwrite: "auto"});
-    if (filterButtonsActive && !dragging && !userLock) {
+    if (!portfolioButtonActive && !dragging && !userLock) {
       document.body.style.cursor = "default";
     }
   });
