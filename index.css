@@ -337,7 +337,6 @@ div.CenteredDiv {
     overflow: visible;
     top: 50%;
     left: 50%;
-    will-change: transform;
 }
 
 

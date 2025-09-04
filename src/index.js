@@ -72,6 +72,11 @@ textureBake.magFilter = THREE.LinearFilter;
 
 const glassMaterial = new THREE.MeshBasicMaterial({
   color: 0xffffff,
+  envMap: cubeMap,
+  combine: THREE.MultiplyOperation,
+  reflectivity: 1,
+  transparent: true,
+  opacity: 0.6,
 });
 //endregion
 
@@ -83,7 +88,7 @@ let monitorButton = null;
 let monitorMask = null;
 
 //SPAWN SCENE (static, no raycast)
-loader.load("Main/Models/ceneCompressed.glb", (glb) => {
+loader.load("Main/Models/SceneCompressed.glb", (glb) => {
   glb.scene.traverse((child) => {
     switch (true) {
       case child.name === "Monitor":
@@ -133,7 +138,7 @@ Object.values(h2cTags).forEach((tag) => {
 });
 
 //SPAWN ASSETS
-loader.load("Main/Models/ssetsCompressed.glb", (glb) => {
+loader.load("Main/Models/AssetsCompressed.glb", (glb) => {
   glb.scene.traverse((child) => {
     switch (true) {
       case child.name === "IconGroup":
@@ -163,10 +168,10 @@ loader.load("Main/Models/ssetsCompressed.glb", (glb) => {
 
   //SETUP ASSETS
   iconArray = [
-    //new Icon(projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/KineticRush4.webm", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]),
-    //new Icon(projectType.TECHNICAL_ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 2", "Description 2", ["blender", "js"]),
-    //new Icon(projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 3", "Description 3", ["aftereffects"]),
-    //new Icon(projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"])
+    new Icon(projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/KineticRush4.webm", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]),
+    new Icon(projectType.TECHNICAL_ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 2", "Description 2", ["blender", "js"]),
+    new Icon(projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 3", "Description 3", ["aftereffects"]),
+    new Icon(projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"])
   ];
   placeIcons();
   scrollTrigger();
@@ -251,7 +256,7 @@ function render() {
     });
   }
 
-  if (userLock) {
+  if (!userLock) {
     raycaster.setFromCamera(pointer, camera);
     const raycast = raycaster.intersectObjects(raycastTargetArray, true);
     if (raycast.length) {
@@ -360,8 +365,8 @@ function render() {
   const delta = (now - lastFrameTime) / 1000;
   fps = 1 / delta;
   lastFrameTime = now;
-  if (fps.toFixed(1) < 100)
-    console.log(fps.toFixed(1));
+  /*if (fps.toFixed(1) < 100)
+    console.log(fps.toFixed(1));*/
 
   renderer.render(scene, camera);
 
