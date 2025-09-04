@@ -56,7 +56,7 @@ const textureLoader = new THREE.TextureLoader(loaderManager);
 //region
 const loader = new GLTFLoader(loaderManager);
 const dracoLoader = new DRACOLoader(loaderManager);
-dracoLoader.setDecoderPath("public/draco/");
+dracoLoader.setDecoderPath("/draco/");
 loader.setDRACOLoader(dracoLoader);
 //endregion
 
@@ -88,7 +88,7 @@ let monitorButton = null;
 let monitorMask = null;
 
 //SPAWN SCENE (static, no raycast)
-loader.load("public/Main/Models/SceneCompressed.glb", (glb) => {
+loader.load("Main/Models/SceneCompressed.glb", (glb) => {
   glb.scene.traverse((child) => {
     switch (true) {
       case child.name === "Monitor":
@@ -138,7 +138,7 @@ Object.values(h2cTags).forEach((tag) => {
 });
 
 //SPAWN ASSETS
-loader.load("public/Main/Models/AssetsCompressed.glb", (glb) => {
+loader.load("Main/Models/AssetsCompressed.glb", (glb) => {
   glb.scene.traverse((child) => {
     switch (true) {
       case child.name === "IconGroup":
