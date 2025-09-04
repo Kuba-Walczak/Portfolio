@@ -974,6 +974,8 @@ class Icon {
 
 //ON LOAD
 //region
+const videoPlayer = document.querySelector(".VideoPlayer");
+const playlist = ["https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/KineticRush2.webm", "https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/ChasmsCall2.webm"];
 document.querySelector(".testing2").addEventListener("click", () => {
   finishedLoading = true;
   document.querySelector(".BackgroundVideo").src = "https://PortfolioPullZone.b-cdn.net/LandingPage/Background.webm";
@@ -988,8 +990,6 @@ resize();
 //VIDEO PLAYER
 // region
 let currentIndex = 0;
-const videoPlayer = document.querySelector(".VideoPlayer");
-const playlist = ["https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/KineticRush2.webm", "https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/ChasmsCall2.webm"];
 videoPlayer.addEventListener("ended", () => {
   if (++currentIndex < playlist.length) {
     videoPlayer.src = playlist[currentIndex];

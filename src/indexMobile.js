@@ -105,13 +105,6 @@ let monitorActive = false;
 let scrollingDiscovered = false;
 let scrollShowInterval = null;
 
-const backgroundVideo = document.querySelector(".BackgroundVideo");
-const backgroundCanvas1 = document.querySelector(".BackgroundCanvas1");
-const backgroundCanvas2 = document.querySelector(".BackgroundCanvas2");
-[backgroundCanvas1, backgroundCanvas2].forEach(canvas => {
-  canvas.width = 2560;
-  canvas.height = 2560;
-});
 let click = {
   target: null,
   time: performance.now()
@@ -720,10 +713,13 @@ class Icon {
 
 //ON LOAD
 //region
+const videoPlayer = document.querySelector(".VideoPlayer");
+const playlist = ["https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/KineticRush2.webm", "https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/ChasmsCall2.webm"];
 gsap.to(".LoadingDiv", {opacity: 0, duration: 2});
 document.querySelector(".testing2").addEventListener("click", () => {
   finishedLoading = true;
   document.querySelector(".BackgroundVideo").src = "https://PortfolioPullZone.b-cdn.net/LandingPage/Background.webm";
+  document.querySelector(".BackgroundVideo").play();
   videoPlayer.src = playlist[0];
   videoPlayer.play();
   iconArray.forEach((child) => {child.video.play()});
@@ -735,8 +731,6 @@ resize();
 //VIDEO PLAYER
 // region
 let currentIndex = 0;
-const videoPlayer = document.querySelector(".VideoPlayer");
-const playlist = ["https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/KineticRush2.webm", "https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/ChasmsCall2.webm"];
 videoPlayer.addEventListener("ended", () => {
   if (++currentIndex < playlist.length) {
     videoPlayer.src = playlist[currentIndex];
