@@ -332,7 +332,7 @@ div.testing2 {
     z-index: 99;
 }
 div.CenteredDiv {
-    position: absolute;
+    position: fixed;
     display: flex;
     justify-content: center;
     align-items: center;
