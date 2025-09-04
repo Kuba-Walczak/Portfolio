@@ -83,7 +83,7 @@ let monitorButton = null;
 let monitorMask = null;
 
 //SPAWN SCENE (static, no raycast)
-loader.load("Main/Models/SceneCompressed.glb", (glb) => {
+loader.load("Main/Models/ceneCompressed.glb", (glb) => {
   glb.scene.traverse((child) => {
     switch (true) {
       case child.name === "Monitor":
@@ -133,7 +133,7 @@ Object.values(h2cTags).forEach((tag) => {
 });
 
 //SPAWN ASSETS
-loader.load("Main/Models/AssetsCompressed.glb", (glb) => {
+loader.load("Main/Models/ssetsCompressed.glb", (glb) => {
   glb.scene.traverse((child) => {
     switch (true) {
       case child.name === "IconGroup":
