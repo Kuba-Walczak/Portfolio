@@ -251,7 +251,7 @@ function render() {
     });
   }
 
-  if (!userLock) {
+  if (userLock) {
     raycaster.setFromCamera(pointer, camera);
     const raycast = raycaster.intersectObjects(raycastTargetArray, true);
     if (raycast.length) {
@@ -360,8 +360,8 @@ function render() {
   const delta = (now - lastFrameTime) / 1000;
   fps = 1 / delta;
   lastFrameTime = now;
-  /*if (fps.toFixed(1) < 100)
-    console.log(fps.toFixed(1));*/
+  if (fps.toFixed(1) < 100)
+    console.log(fps.toFixed(1));
 
   renderer.render(scene, camera);
 
