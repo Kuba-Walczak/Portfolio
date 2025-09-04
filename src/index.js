@@ -72,11 +72,6 @@ textureBake.magFilter = THREE.LinearFilter;
 
 const glassMaterial = new THREE.MeshBasicMaterial({
   color: 0xffffff,
-  envMap: cubeMap,
-  combine: THREE.MultiplyOperation,
-  reflectivity: 1,
-  transparent: true,
-  opacity: 0.6,
 });
 //endregion
 
