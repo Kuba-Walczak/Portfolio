@@ -29,8 +29,6 @@ const iconArray = [
 
 //UTILITY
 //region
-let lastFrameTime = performance.now();
-let fps = null;
 
 const projectType = {
   PROGRAMMING: "programming",
@@ -43,31 +41,27 @@ const activeFilters = {
   ART: true
 };
 
-let divPositionMultiplier = null;
-
-let portfolioButtonHover = false;
-let portfolioButtonActive = true;
-
-let filterButtonHover = false;
-let filterButtonsActive = false;
-
-let monitorPowered = true;
 let monitorDivHover = false;
 let monitorActive = false;
 let scrollingDiscovered = false;
 let scrollShowInterval = null;
 
-let click = {
-  target: null,
-  time: performance.now()
-};
-let lastClick = null;
-
 let finishedLoading = false;
 //endregion
 
 window.addEventListener("wheel", (event) => {
-  if (monitorDivHover && monitorPowered && monitorActive) {
+  if (monitorDivHover && monitorActive) {
+    scrollMonitorBy(event.deltaY * 0.2, 0.5, true)
+  }
+});
+
+window.addEventListener("touchstart", (event) => {
+  if (event.touches.length === 1 && event.target.matches(".ScrollDiv"))
+    monitorDivHover = true;
+});
+
+window.addEventListener("touchmove", (event) => {
+  if (monitorDivHover && monitorActive) {
     scrollMonitorBy(event.deltaY * 0.2, 0.5, true)
   }
 });
@@ -75,7 +69,6 @@ window.addEventListener("wheel", (event) => {
 
 window.addEventListener("resize", () => {
   resize();
-  scrollCameraTo(0, 0);
 });
 
 function resize() {
@@ -94,8 +87,6 @@ function resize() {
   cameraWrapper.centeredDiv.style.width = `${newWidth}px`;
   cameraWrapper.centeredDiv.style.height = `${newHeight}px`;
   cameraWrapper.centeredDiv.style.fontSize = `${newWidth / DEFAULT_FONT_SIZE}px`;
-
-  divPositionMultiplier = newWidth * MAGIC_DIV_OFFSET;
 }
 
 function scrollMonitorBy(deltaY, duration, boolean) {
@@ -153,7 +144,6 @@ function monitorState(boolean) {
 //region
 const videoPlayer = document.querySelector(".VideoPlayer");
 const playlist = ["https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/KineticRush2.webm", "https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/ChasmsCall2.webm"];
-gsap.to(".LoadingDiv", {opacity: 0, duration: 2});
 
 document.querySelector(".testing2").addEventListener("click", () => {
   finishedLoading = true;
@@ -165,7 +155,6 @@ document.querySelector(".testing2").addEventListener("click", () => {
   document.documentElement.requestFullscreen();
 });
 
-gsap.set(cameraWrapper.centeredDiv, {xPercent: -50, yPercent: -50, y: 0});
 resize();
 //endregion
 
@@ -195,14 +184,8 @@ gsap.to(obj, {value: 1, duration: 5, repeat: -1, yoyo: true, ease: "sine.inOut",
 
 //HOME SECTION HOVER
 //region
-document.querySelector(".MonitorDiv").addEventListener("mouseenter", () => {
-  monitorDivHover = true;
-  gsap.to(videoPlayer, {opacity: 0.5, duration: 0.2, overwrite: "auto"});
-});
-document.querySelector(".MonitorDiv").addEventListener("mouseleave", () => {
-  monitorDivHover = false;
-  gsap.to(videoPlayer, {opacity: 0.3, duration: 1, overwrite: "auto"});
-});
+document.querySelector(".MonitorDiv").addEventListener("mouseenter", () => {monitorDivHover = true});
+document.querySelector(".MonitorDiv").addEventListener("mouseleave", () => {monitorDivHover = false});
 //endregion
 
 //SKILL HOVER
@@ -246,14 +229,10 @@ document.querySelectorAll(".LogoDiv")[1].addEventListener("click", () => {
 //NAVIGATION BUTTONS
 //region
 const portfolioButtonDiv = document.querySelector(".PortfolioButtonDiv");
-portfolioButtonDiv.addEventListener("click", () => {if (portfolioButtonActive && !userLock) {
+portfolioButtonDiv.addEventListener("click", () => {
   gsap.set(portfolioButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
   gsap.to(portfolioButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
-  scrollCameraTo(-MAX_SCROLL, 3)
-}});
-
-const homeSection = document.querySelector(".HomeSection");
-const aboutSection = document.querySelector(".AboutSection");
+});
 
 document.querySelector(".HomeButtonDiv").addEventListener("click", () => {
   gsap.set(".HomeButtonDiv", {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});

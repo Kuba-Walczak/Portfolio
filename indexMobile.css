@@ -300,28 +300,6 @@ body {
     margin: 0;
     padding: 0;
 }
-div.LoadingDiv {
-    position: fixed;
-    width: 100vw;
-    height: 100vh;
-    top: 0;
-    left: 0;
-    background: black;
-    pointer-events: none;
-    z-index: 99;
-    opacity: 1;
-}
-div.testing {
-    position: absolute;
-    width: 10%;
-    height: 10%;
-    background: white;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-
-}
 div.testing2 {
     position: absolute;
     width: 10%;
@@ -341,6 +319,7 @@ div.CenteredDiv {
     height: 100%;
     top: 50%;
     left: 50%;
+    transform: translate(-50%, -50%);
 }
 img.MonitorImage {
     position: absolute;
@@ -819,6 +798,7 @@ div.FilterDivDiv {
     position: absolute;
     width: 100%;
     height: 100%;
+    opacity: 0;
 }
 div.FilterIconDivDiv {
     position: absolute;
@@ -888,8 +868,8 @@ video.VideoPlayer {
     object-fit: cover;
     width: 100%;
     height: 100%;
-    opacity: 0.3;
-    z-index: 10;
+    opacity: 0.5;
+    z-index: 1;
 }
 video.VideoBuffer0, video.VideoBuffer1 {
     position: absolute;

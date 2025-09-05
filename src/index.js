@@ -816,7 +816,6 @@ class Icon {
     this.video.preload = "auto";
     this.video.loop = true;
     this.video.muted = true;
-    this.video.playsInline = true;
     this.video.addEventListener("loadedmetadata", () => {
       this.videoTexture = new THREE.VideoTexture(this.video);
       this.videoTexture.flipY = false;
