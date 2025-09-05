@@ -3,6 +3,7 @@ import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 import {DRACOLoader} from "three/examples/jsm/loaders/DRACOLoader.js";
 import {gsap} from "gsap";
 import html2canvas from "html2canvas";
+import { afterImage } from 'three/addons/tsl/display/AfterImageNode.js';
 
 //CONSTANTS
 const MAIN_COLOR = {
@@ -36,15 +37,20 @@ const cameraWrapper = {
   scrollDiv: document.querySelector(".ScrollDiv"),
   faceForegroundImage: document.querySelector(".FaceForegroundImage")
 };
-const canvas = document.querySelector(".test");
-const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, preserveDrawingBuffer: true});
+const canvas = document.querySelector(".threejs");
+const renderer = new THREE.WebGLRenderer({
+  canvas: canvas,
+  antialias: true,
+  alpha: true,
+  preserveDrawingBuffer: true
+});
 renderer.setClearColor(0x000000, 0);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setAnimationLoop(render);
 const loaderManager = new THREE.LoadingManager(() => {
   renderer.compile(scene, camera);
-  console.log("rendered")
+  gsap.set(document.querySelectorAll(".LoadingIcon"), {opacity: 1, overwrite: "auto"});
 })
 camera.updateProjectionMatrix();
 scene.updateMatrixWorld(true);
@@ -88,7 +94,7 @@ let monitorButton = null;
 let monitorMask = null;
 
 //SPAWN SCENE (static, no raycast)
-loader.load("Main/Models/SceneCompressed.glb", (glb) => {
+loader.load("LandingPage/Models/SceneCompressed.glb", (glb) => {
   glb.scene.traverse((child) => {
     switch (true) {
       case child.name === "Monitor":
@@ -149,7 +155,7 @@ Object.values(h2cTags).forEach((tag) => {
 });
 
 //SPAWN ASSETS
-loader.load("Main/Models/AssetsCompressed.glb", (glb) => {
+loader.load("LandingPage/Models/AssetsCompressed.glb", (glb) => {
   glb.scene.traverse((child) => {
     switch (true) {
       case child.name === "IconGroup":
@@ -178,7 +184,7 @@ loader.load("Main/Models/AssetsCompressed.glb", (glb) => {
   });
 
   //SETUP ASSETS
-  loadIcons(iconParameters).then(() => {spawnIcons()});
+  loadIcons(iconParameters).then(() => {spawnIcons(true)});
   scrollTrigger();
 
   primitiveArray.forEach((primitive) => {
@@ -197,7 +203,7 @@ loader.load("Main/Models/AssetsCompressed.glb", (glb) => {
 let lastFrameTime = performance.now();
 let fps = null;
 
-let correctedCameraZ = camera.position.z;
+let loadingProgress = 0;
 let finishedLoading = false;
 
 const activeFilters = {
@@ -217,7 +223,7 @@ const lookPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -0.3);
 const lookIntersection = new THREE.Vector3();
 let raycastResult = null;
 let previousRaycastResult = null;
-let userLock = false;
+let userLock = true;
 let animationLock = null;
 
 let divPositionMultiplier = null;
@@ -295,7 +301,6 @@ function render() {
       }
     }
 
-    //HOVER ENTER/LEAVE
     else if (raycastResult !== previousRaycastResult && !mouseDown) {
 
       if (previousRaycastResult) {
@@ -339,7 +344,7 @@ function render() {
               iconGroup.userData.tl.kill();
             const tl = gsap.timeline();
             iconGroup.userData.tl = tl;
-            tl.to(iconGroup.userData.iconHover.material, {opacity: 1, duration: 0.5, overwrite: "auto"}).addLabel("selected").call(() => {
+            tl.to(iconGroup.userData.iconHover.material, {opacity: 1, duration: 0.75, overwrite: "auto"}).addLabel("selected").call(() => {
             })
             .to(iconGroup.position, {z: -0.15, duration: 0.5, overwrite: "auto"}, ">")
             .to(iconGroup.userData.iconScreen.material, {opacity: 1, duration: 1, overwrite: "auto"}, "<")
@@ -382,7 +387,7 @@ window.addEventListener("wheel", (event) => {
       scrollMonitorBy(event.deltaY * 0.2, 0.5, true)
     }
     else
-      scrollCameraBy(event.deltaY * 0.0008, 0.5);
+      scrollCameraBy(event.deltaY * 0.0009, 0.5);
 });
 
 window.addEventListener("mousemove", (event) => {
@@ -394,6 +399,74 @@ window.addEventListener("mousedown", (event) => {
   event.preventDefault();
   if (!userLock) {
     mouseDown = true;
+
+    switch (true) {
+      case portfolioButtonHover === document.querySelector(".HomeButtonDiv") && portfolioButtonActive: {
+        gsap.set(".HomeButtonDiv", { backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
+        gsap.to(".HomeButtonDiv", { backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
+        monitorState(false);
+        gsap.to(".HomeSection", { opacity: 1, duration: 0.5, overwrite: "auto"});
+        gsap.to(".AboutSection", { opacity: 0, duration: 0.5, overwrite: "auto"});
+        break;
+      }
+      case portfolioButtonHover === document.querySelector(".PortfolioButtonDiv") && portfolioButtonActive: {
+        gsap.set(".PortfolioButtonDiv", {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
+        gsap.to(".PortfolioButtonDiv", {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
+        scrollCameraTo(-MAX_SCROLL, 2);
+        break;
+      }
+      case portfolioButtonHover === document.querySelector(".AboutButtonDiv") && portfolioButtonActive: {
+        gsap.set(".AboutButtonDiv", { backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
+        gsap.to(".AboutButtonDiv", { backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
+        monitorState(true);
+        gsap.to(".AboutSection", { opacity: 1, duration: 0.5, overwrite: "auto"});
+        gsap.to(".HomeSection", { opacity: 0, duration: 0.5, overwrite: "auto"});
+        break;
+      }
+      case filterButtonHover === document.querySelector(".Filter1Div") && filterButtonsActive: {
+        gsap.set(".Filter1Div", {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
+        gsap.to(".Filter1Div", {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
+        if (activeFilters.PROGRAMMING) {
+          activeFilters.PROGRAMMING = false;
+          document.querySelectorAll(".FilterIcon1Div").forEach((child) => {child.style.backgroundColor = "rgba(255, 255, 255, 0.05)"});
+        }
+        else {
+          activeFilters.PROGRAMMING = true;
+          document.querySelectorAll(".FilterIcon1Div").forEach((child) => {child.style.backgroundColor = "lightgreen"});
+        }
+        spawnIcons();
+        break;
+      }
+      case filterButtonHover === document.querySelector(".Filter2Div") && filterButtonsActive: {
+        gsap.set(".Filter2Div", {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
+        gsap.to(".Filter2Div", {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
+        if (activeFilters.TECHNICAL_ART) {
+          activeFilters.TECHNICAL_ART = false;
+          document.querySelectorAll(".FilterIcon2Div").forEach((child) => {child.style.backgroundColor = "rgba(255, 255, 255, 0.05)"});
+        }
+        else {
+          activeFilters.TECHNICAL_ART = true;
+          document.querySelectorAll(".FilterIcon2Div").forEach((child) => {child.style.backgroundColor = "yellow"});
+        }
+        spawnIcons();
+        break;
+      }
+      case filterButtonHover === document.querySelector(".Filter3Div") && filterButtonsActive: {
+        gsap.set(".Filter3Div", {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
+        gsap.to(".Filter3Div", {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
+        if (activeFilters.ART) {
+          activeFilters.ART = false;
+          document.querySelectorAll(".FilterIcon3Div").forEach((child) => {child.style.backgroundColor = "rgba(255, 255, 255, 0.05)"});
+        }
+        else {
+          activeFilters.ART = true;
+          document.querySelectorAll(".FilterIcon3Div").forEach((child) => {child.style.backgroundColor = "lightcoral"});
+        }
+        spawnIcons();
+        break;
+      }
+    }
+
     if (raycastResult) {
       switch (true) {
         case raycastResult.parent.name === "IconGroup":
@@ -499,10 +572,13 @@ window.addEventListener("mouseup", () => {
   }});
 
 window.addEventListener("resize", () => {
-  resize();
-  scrollCameraTo(0, 0);
+  if (userLock)
+    location.reload();
+  else {
+    resize();
+    scrollCameraTo(0, 0);
+  }
 });
-
 function resize() {
   screenSize.width = window.innerWidth;
   screenSize.height = window.innerHeight;
@@ -528,7 +604,7 @@ function resize() {
   canvas.style.height = `${divRect.height}px`;
 
   renderer.setSize(screenSize.width, screenSize.height, true);
-  camera.position.z = correctedCameraZ * (screenSize.height / newHeight);
+  camera.position.z = -0.9 * (screenSize.height / newHeight);
   camera.aspect = screenSize.width / screenSize.height;
   camera.updateProjectionMatrix();
 }
@@ -668,14 +744,13 @@ function scrollMonitorBy(deltaY, duration, boolean) {
 
 let s = 1;
 let lastScale = 1;
-function zoomCameraTo(scrollZ, duration) {
+function zoomCameraTo(scrollZ, duration, boolean) {
   const baseZoom = camera.position.z;
-
   gsap.to(camera.position, {z: scrollZ, duration: duration, ease: "power1.inOut", onUpdate: () => {
-      if (scrollZ <= -0.9)
-        s = lastScale * (baseZoom / camera.position.z);
-      else
+      if (boolean)
         s = lastScale * (baseZoom / camera.position.z) + (gsap.getProperty(cameraWrapper.centeredDiv, "scale") - 1) / 20;
+      else
+        s = lastScale * (baseZoom / camera.position.z);
       gsap.set(cameraWrapper.centeredDiv, {scale: s});
       }, onComplete: () => {lastScale = gsap.getProperty(cameraWrapper.centeredDiv, "scale")}
   });
@@ -683,7 +758,7 @@ function zoomCameraTo(scrollZ, duration) {
 
 function playVideo() {
   scrollCameraTo(0, 1);
-  zoomCameraTo(-0.35, 2)
+  zoomCameraTo(-0.35, 2, true)
   //setTimeout(() => window.open("project 1.html", "_self"), 2000);
 }
 
@@ -753,9 +828,9 @@ async function loadIcons(iconParameters) {
   }
 }
 
-function spawnIcons() {
+function spawnIcons(boolean) {
   if (!iconGroupGroup.children.length) {
-    spawnIconsHelper();
+    spawnIconsHelper(boolean);
   }
   else {
     filterButtonsActive = false;
@@ -773,14 +848,15 @@ function spawnIcons() {
   scene.add(iconGroupGroup);
 }
 
-function spawnIconsHelper() {
+function spawnIconsHelper(boolean) {
   const iconGroupSpawnerCurrentPosition = ICON_GROUP_SPAWNER_INITIAL_POSITION.clone();
   iconArray.forEach((iconGroup) => {
     Object.keys(projectType).some((type) => {
       if (activeFilters[type] && iconGroup.type === projectType[type]) {
         gsap.killTweensOf(iconGroup.object.position);
         gsap.killTweensOf(iconGroup.object.scale);
-        filterButtonsActive = true;
+        if (!boolean)
+          filterButtonsActive = true;
         if (filterButtonHover) {
           document.body.style.cursor = "pointer";
           gsap.to(filterButtonHover, {backgroundColor: "rgba(255, 255, 255, 0.1)", ease: "back", duration: 0.2});
@@ -800,14 +876,41 @@ function spawnIconsHelper() {
     });
   });
   if (!iconGroupGroup.children.length) {
-    filterButtonsActive = true;
+    if (!boolean)
+      filterButtonsActive = true;
     if (filterButtonHover)
       document.body.style.cursor = "pointer";
   }
 }
 
-function updateProgressBar() {
+function updateLoading() {
+  const isLoaded = iconParameters.length;
+  if (++loadingProgress === isLoaded) {
+    gsap.to(".LoadingIcon", {opacity: 0, duration: 0.5, overwrite: "auto"});
+    setTimeout(() => {onLoad()}, 500);
+  }
+  else {
+    gsap.set(".LoadingIcon", {"--progress": `+=${loadingProgress / isLoaded * 100}%`, overwrite: "auto"});
+  }
+}
 
+function onLoad() {
+  gsap.set(cameraWrapper.centeredDiv, {xPercent: -50, yPercent: -50, y: 0});
+  gsap.to(".LoadingDiv", {opacity: 0, duration: 4});
+  document.querySelector(".BackgroundVideo").src = "https://PortfolioPullZone.b-cdn.net/LandingPage/Background.webm";
+  videoPlayer.src = playlist[0];
+  videoPlayer.play();
+  iconArray.forEach((child) => {child.video.play()});
+  if (screenSize.width / screenSize.height > 16 / 9) {
+    zoomCameraTo(-1.5, 0);
+    zoomCameraTo(-0.9, 2);
+  }
+  else {
+    zoomCameraTo(-0.9 * (screenSize.height / screenSize.width * 16 / 9) * 1.5, 0);
+    zoomCameraTo(-0.9 * (screenSize.height / screenSize.width * 16 / 9), 2);
+  }
+  setTimeout(() => {userLock = false}, 2000);
+  finishedLoading = true;
 }
 
 class Icon {
@@ -984,32 +1087,15 @@ class Icon {
       texture.colorSpace = THREE.SRGBColorSpace;
       this.iconHover.material = new THREE.MeshBasicMaterial({map: texture, transparent: true, opacity: 0});
     });
-    gsap.set(document.querySelector(".testing"), {opacity: 1, duration: 1, overwrite: "auto"})
-    console.log("loaded");
+
+    updateLoading();
   }
 }
 
-//ON LOAD
-//region
-//userLock = true;
-const videoPlayer = document.querySelector(".VideoPlayer");
-const playlist = ["https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/KineticRush2.webm", "https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/ChasmsCall2.webm"];
-setTimeout(() => {
-  finishedLoading = true;
-  gsap.to(".LoadingDiv", {opacity: 0, duration: 4});
-  document.querySelector(".BackgroundVideo").src = "https://PortfolioPullZone.b-cdn.net/LandingPage/Background.webm";
-  videoPlayer.src = playlist[0];
-  videoPlayer.play();
-  iconArray.forEach((child) => {child.video.play()});
-  zoomCameraTo(-1.5, 0);
-  zoomCameraTo(-0.9, 2);
-}, 3000);
-gsap.set(cameraWrapper.centeredDiv, {xPercent: -50, yPercent: -50, y: 0});
-resize();
-//endregion
-
 //VIDEO PLAYER
 // region
+const videoPlayer = document.querySelector(".VideoPlayer");
+const playlist = ["https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/KineticRush2.webm", "https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/ChasmsCall2.webm"];
 let currentIndex = 0;
 videoPlayer.addEventListener("ended", () => {
   if (++currentIndex < playlist.length) {
@@ -1072,6 +1158,7 @@ document.querySelectorAll(".SkillIconDiv").forEach((child) => {
 //endregion
 
 //LOGO
+//region
 document.querySelectorAll(".LogoDiv")[1].addEventListener("mouseenter", () => {
   document.body.style.cursor = "pointer";
 });
@@ -1081,96 +1168,11 @@ document.querySelectorAll(".LogoDiv")[1].addEventListener("mouseleave", () => {
 document.querySelectorAll(".LogoDiv")[1].addEventListener("click", () => {
   window.open("https://pja.edu.pl/en/", "_blank");
 });
-
-//NAVIGATION BUTTONS
-//region
-const portfolioButtonDiv = document.querySelector(".PortfolioButtonDiv");
-portfolioButtonDiv.addEventListener("click", () => {if (portfolioButtonActive && !userLock) {
-  gsap.set(portfolioButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
-  gsap.to(portfolioButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
-  scrollCameraTo(-MAX_SCROLL, 2)
-}});
-
-const homeSection = document.querySelector(".HomeSection");
-const aboutSection = document.querySelector(".AboutSection");
-
-const homeButtonDiv = document.querySelector(".HomeButtonDiv");
-homeButtonDiv.addEventListener("click", () => {
-  if (portfolioButtonActive && !userLock) {
-    gsap.set(homeButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
-    gsap.to(homeButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
-    monitorState(false);
-    gsap.to(homeSection, {opacity: 1, duration: 0.5});
-    gsap.to(aboutSection, {opacity: 0, duration: 0.5});
-  }});
-
-const aboutButtonDiv = document.querySelector(".AboutButtonDiv");
-aboutButtonDiv.addEventListener("click", () => {
-  if (portfolioButtonActive && !userLock) {
-    gsap.set(aboutButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
-    gsap.to(aboutButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
-    monitorState(true);
-    gsap.to(aboutSection, {opacity: 1, duration: 0.5});
-    gsap.to(homeSection, {opacity: 0, duration: 0.5})
-  }
-});
 //endregion
 
-//FILTER BUTTONS
+//BUTTONS HOVER/LEAVE
 //region
-const filter1ButtonDiv = document.querySelector(".Filter1Div");
-filter1ButtonDiv.addEventListener("click", () => {
-if (filterButtonsActive) {
-  gsap.set(filter1ButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
-  gsap.to(filter1ButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
-  const filterIcon1Div = document.querySelectorAll(".FilterIcon1Div");
-  if (activeFilters.PROGRAMMING) {
-    activeFilters.PROGRAMMING = false;
-    filterIcon1Div.forEach((child) => {child.style.backgroundColor = "rgba(255, 255, 255, 0.05)"});
-  }
-else {
-    activeFilters.PROGRAMMING = true;
-    filterIcon1Div.forEach((child) => {child.style.backgroundColor = "lightgreen"});
-  }
-  spawnIcons();
-}
-});
-const filter2ButtonDiv = document.querySelector(".Filter2Div");
-filter2ButtonDiv.addEventListener("click", () => {
-  if (filterButtonsActive) {
-    gsap.set(filter2ButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
-    gsap.to(filter2ButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
-    const filterIcon2Div = document.querySelectorAll(".FilterIcon2Div");
-    if (activeFilters.TECHNICAL_ART) {
-      activeFilters.TECHNICAL_ART = false;
-      filterIcon2Div.forEach((child) => {child.style.backgroundColor = "rgba(255, 255, 255, 0.05)"});
-    }
-    else {
-      activeFilters.TECHNICAL_ART = true;
-      filterIcon2Div.forEach((child) => {child.style.backgroundColor = "yellow"});
-    }
-    spawnIcons();
-  }
-});
-const filter3ButtonDiv = document.querySelector(".Filter3Div");
-filter3ButtonDiv.addEventListener("click", () => {
-  if (filterButtonsActive) {
-    gsap.set(filter3ButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
-    gsap.to(filter3ButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
-    const filterIcon3Div = document.querySelectorAll(".FilterIcon3Div");
-    if (activeFilters.ART) {
-      activeFilters.ART = false;
-      filterIcon3Div.forEach((child) => {child.style.backgroundColor = "rgba(255, 255, 255, 0.05)"});
-    }
-    else {
-      activeFilters.ART = true;
-      filterIcon3Div.forEach((child) => {child.style.backgroundColor = "lightcoral"});
-    }
-    spawnIcons();
-  }
-});
-
-[homeButtonDiv, portfolioButtonDiv, aboutButtonDiv].forEach(button => {
+[document.querySelector(".HomeButtonDiv"), document.querySelector(".PortfolioButtonDiv"), document.querySelector(".AboutButtonDiv")].forEach(button => {
   button.addEventListener("mouseenter", () => {
     portfolioButtonHover = button;
     if (portfolioButtonActive && !dragging && !userLock) {
@@ -1186,7 +1188,7 @@ filter3ButtonDiv.addEventListener("click", () => {
   });
 });
 
-[filter1ButtonDiv, filter2ButtonDiv, filter3ButtonDiv].forEach((button) => {
+[document.querySelector(".Filter1Div"), document.querySelector(".Filter2Div"), document.querySelector(".Filter3Div")].forEach((button) => {
   button.addEventListener("mouseenter", () => {
     filterButtonHover = button;
     if (filterButtonsActive && !dragging && !userLock) {
@@ -1202,3 +1204,5 @@ filter3ButtonDiv.addEventListener("click", () => {
   });
 });
 //endregion
+
+resize();

@@ -306,19 +306,27 @@ div.LoadingDiv {
     height: 100vh;
     background: black;
     pointer-events: none;
-    z-index: 99;
-    opacity: 1;
+    z-index: 98;
 }
-div.testing {
+div.LoadingIcon {
     position: absolute;
-    width: 10%;
-    height: 10%;
-    background: white;
+    width: 20%;
+    padding-bottom: 20%;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    mask-size: cover;
     opacity: 0;
-
+    z-index: 99;
+}
+div.LoadingIcon1 {
+    background: dimgray;
+    mask-image: url("public/LandingPage/Icons/LoadingIcon.svg");
+}
+div.LoadingIcon2 {
+    background: url("public/LandingPage/Icons/LoadingIcon.svg");
+    --progress: 0%;
+    mask-image: linear-gradient(to top, white var(--progress), transparent var(--progress));
 }
 div.CenteredDiv {
     position: absolute;
@@ -330,8 +338,6 @@ div.CenteredDiv {
     left: 50%;
     will-change: transform;
 }
-
-
 div.BackgroundDiv {
     position: absolute;
     width: 200%;
@@ -358,7 +364,7 @@ video.BackgroundVideo {
 }
 canvas.BackgroundCanvas1 {
     position: absolute;
-    width: 110%;
+    width: 120%;
     height: auto;
     top: -20%;
     left: 50%;
@@ -370,7 +376,7 @@ canvas.BackgroundCanvas1 {
 }
 canvas.BackgroundCanvas2 {
     position: absolute;
-    width: 110%;
+    width: 120%;
     height: auto;
     top: 140%;
     left: 50%;
@@ -411,7 +417,7 @@ div.HomeButtonIconDiv {
     left: 50%;
     transform: translate(-50%, -50%);
     background: linear-gradient(to bottom, white, rgba(var(--text-color-rgb), 1), rgba(var(--main-color-rgb), 1));
-    mask-image: url("public/Main/Icons/HomeIcon.svg");
+    mask-image: url("public/LandingPage/Icons/HomeIcon.svg");
     mask-size: contain;
 }
 section.AboutSection {
@@ -488,7 +494,7 @@ div.ProgrammingIconDiv {
     left: 50%;
     transform: translate(-50%, -50%);
     background: linear-gradient(to bottom, white, rgba(var(--text-color-rgb), 1), rgba(var(--main-color-rgb), 1));
-    mask-image: url("public/Main/Icons/ProgrammingIcon.svg");
+    mask-image: url("public/LandingPage/Icons/ProgrammingIcon.svg");
     mask-size: contain;
 }
 div.ProgrammingIconDivDiv {
@@ -523,7 +529,7 @@ div.ArtIconDiv {
     left: 50%;
     transform: translate(-50%, -50%);
     background: linear-gradient(to bottom, white, rgba(var(--text-color-rgb), 1), rgba(var(--main-color-rgb), 1));
-    mask-image: url("public/Main/Icons/ArtIcon.svg");
+    mask-image: url("public/LandingPage/Icons/ArtIcon.svg");
     mask-size: cover;
 }
 div.ArtIconDivDiv {
@@ -550,7 +556,7 @@ div.ToolIconDiv {
     left: 50%;
     transform: translate(-50%, -50%);
     background: linear-gradient(to bottom, white, rgba(var(--text-color-rgb), 1), rgba(var(--main-color-rgb), 1));
-    mask-image: url("public/Main/Icons/ToolIcon.svg");
+    mask-image: url("public/LandingPage/Icons/ToolIcon.svg");
     mask-size: contain;
 }
 div.ToolIconDivDiv {
@@ -745,7 +751,7 @@ div.AboutButtonIconDiv {
     left: 50%;
     transform: translate(-50%, -50%);
     background: linear-gradient(to bottom, white, rgba(var(--text-color-rgb), 1), rgba(var(--main-color-rgb), 1));
-    mask-image: url("public/Main/Icons/AboutIcon.svg");
+    mask-image: url("public/LandingPage/Icons/AboutIcon.svg");
     mask-size: contain;
 }
 
@@ -944,9 +950,8 @@ div.Slot2Div {
     background: radial-gradient(circle at 50% 50%, black calc(var(--radius)), transparent calc(var(--radius) + 0.5%));
 }
 
-canvas.test {
+canvas.threejs {
     position: relative;
     left: 0;
-    z-index: 1;
     pointer-events: none;
 }
