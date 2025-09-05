@@ -162,6 +162,7 @@ document.querySelector(".testing2").addEventListener("click", () => {
   videoPlayer.src = playlist[0];
   videoPlayer.play();
   iconArray.forEach((child) => {child.video.play()});
+  document.documentElement.requestFullscreen();
 });
 
 gsap.set(cameraWrapper.centeredDiv, {xPercent: -50, yPercent: -50, y: 0});
