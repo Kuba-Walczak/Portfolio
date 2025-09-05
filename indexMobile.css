@@ -375,32 +375,8 @@ video.BackgroundVideo {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    filter: hue-rotate(270deg);
-    mask-image: linear-gradient(transparent, white, transparent);
-    z-index: -1;
-    opacity: 0.5;
-}
-canvas.BackgroundCanvas1 {
-    position: absolute;
-    width: 110%;
-    height: auto;
-    top: -20%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    filter: hue-rotate(300deg);
-    mask-image: linear-gradient(transparent, white 90%, transparent);
-    z-index: -1;
-    opacity: 0.5;
-}
-canvas.BackgroundCanvas2 {
-    position: absolute;
-    width: 110%;
-    height: auto;
-    top: 140%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     filter: hue-rotate(250deg);
-    mask-image: linear-gradient(to top, transparent, white 90%, transparent);
+    mask-image: linear-gradient(transparent, white, transparent);
     z-index: -1;
     opacity: 0.5;
 }

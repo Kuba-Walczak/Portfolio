@@ -96,16 +96,6 @@ function resize() {
   cameraWrapper.centeredDiv.style.fontSize = `${newWidth / DEFAULT_FONT_SIZE}px`;
 
   divPositionMultiplier = newWidth * MAGIC_DIV_OFFSET;
-
-  const divRect = cameraWrapper.centeredDiv.getBoundingClientRect();
-
-  canvas.style.width = `${divRect.width}px`;
-  canvas.style.height = `${divRect.height}px`;
-
-  renderer.setSize(screenSize.width, screenSize.height, true);
-  camera.position.z = -0.9 * (screenSize.height / newHeight);
-  camera.aspect = screenSize.width / screenSize.height;
-  camera.updateProjectionMatrix();
 }
 
 function scrollMonitorBy(deltaY, duration, boolean) {
@@ -139,7 +129,6 @@ function zoomCameraTo(scrollZ, duration) {
 }
 
 function playVideo() {
-  scrollCameraTo(0, 1);
   zoomCameraTo(-0.35, 2)
   //setTimeout(() => window.open("project 1.html", "_self"), 2000);
 }
@@ -165,6 +154,7 @@ function monitorState(boolean) {
 const videoPlayer = document.querySelector(".VideoPlayer");
 const playlist = ["https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/KineticRush2.webm", "https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/ChasmsCall2.webm"];
 gsap.to(".LoadingDiv", {opacity: 0, duration: 2});
+
 document.querySelector(".testing2").addEventListener("click", () => {
   finishedLoading = true;
   document.querySelector(".BackgroundVideo").src = "https://PortfolioPullZone.b-cdn.net/LandingPage/Background.webm";
@@ -173,6 +163,7 @@ document.querySelector(".testing2").addEventListener("click", () => {
   videoPlayer.play();
   iconArray.forEach((child) => {child.video.play()});
 });
+
 gsap.set(cameraWrapper.centeredDiv, {xPercent: -50, yPercent: -50, y: 0});
 resize();
 //endregion
@@ -263,24 +254,21 @@ portfolioButtonDiv.addEventListener("click", () => {if (portfolioButtonActive &&
 const homeSection = document.querySelector(".HomeSection");
 const aboutSection = document.querySelector(".AboutSection");
 
-const homeButtonDiv = document.querySelector(".HomeButtonDiv");
-homeButtonDiv.addEventListener("click", () => {
-  gsap.set(homeButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
-  gsap.to(homeButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
+document.querySelector(".HomeButtonDiv").addEventListener("click", () => {
+  gsap.set(".HomeButtonDiv", {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
+  gsap.to(".HomeButtonDiv", {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
   monitorState(false);
-  gsap.to(homeSection, {opacity: 1, duration: 0.5});
-  gsap.to(aboutSection, {opacity: 0, duration: 0.5});
+  gsap.to(".HomeSection", {opacity: 1, duration: 0.5});
+  gsap.to(".AboutSection", {opacity: 0, duration: 0.5});
   });
 
 const aboutButtonDiv = document.querySelector(".AboutButtonDiv");
 aboutButtonDiv.addEventListener("click", () => {
-  if (portfolioButtonActive && !userLock) {
-    gsap.set(aboutButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
-    gsap.to(aboutButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
-    monitorState(true);
-    gsap.to(aboutSection, {opacity: 1, duration: 0.5});
-    gsap.to(homeSection, {opacity: 0, duration: 0.5})
-  }
+  gsap.set(".AboutButtonDiv", {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
+  gsap.to(".AboutButtonDiv", {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
+  monitorState(true);
+  gsap.to(".AboutSection", {opacity: 1, duration: 0.5});
+  gsap.to(".HomeSection", {opacity: 0, duration: 0.5});
 });
 //endregion
 
@@ -300,7 +288,6 @@ else {
     activeFilters.PROGRAMMING = true;
     filterIcon1Div.forEach((child) => {child.style.backgroundColor = "lightgreen"});
   }
-  placeIcons();
 }
 });
 const filter2ButtonDiv = document.querySelector(".Filter2Div");
@@ -317,7 +304,6 @@ filter2ButtonDiv.addEventListener("click", () => {
       activeFilters.TECHNICAL_ART = true;
       filterIcon2Div.forEach((child) => {child.style.backgroundColor = "yellow"});
     }
-    placeIcons();
   }
 });
 const filter3ButtonDiv = document.querySelector(".Filter3Div");
@@ -334,11 +320,10 @@ filter3ButtonDiv.addEventListener("click", () => {
       activeFilters.ART = true;
       filterIcon3Div.forEach((child) => {child.style.backgroundColor = "lightcoral"});
     }
-    placeIcons();
   }
 });
 
-[homeButtonDiv, portfolioButtonDiv, aboutButtonDiv, filter1ButtonDiv, filter2ButtonDiv, filter3ButtonDiv].forEach(button => {
+[document.querySelector(".HomeButtonDiv"), portfolioButtonDiv, aboutButtonDiv, filter1ButtonDiv, filter2ButtonDiv, filter3ButtonDiv].forEach(button => {
   button.addEventListener("mouseenter", () => {
     document.body.style.cursor = "pointer";
     gsap.to(button, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.2, overwrite: "auto"});});
