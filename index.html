@@ -2,19 +2,69 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="stylesheet" href="indexMobile.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="index.css">
     <link rel="icon" type="image/svg+xml" href="public/Main/HeadIcon.svg">
     <title>Jacob | Technical Artist</title>
   </head>
   <body>
+    <div class="LoadingDiv">
+      <div class="testing"></div>
+    </div>
     <div class="CenteredDiv">
-      <div class="testing2"></div>
-      <img class="MonitorImage" src="https://PortfolioPullZone.b-cdn.net/LandingPage/Monitor.webp" alt="">
+
+      <div class="html2canvasDiv">
+        <div class="h2cGlowDiv"></div>
+        <div class="h2cBackgroundDiv">
+          <div class="h2cBar1Div"></div>
+          <div class="h2cBar2Div"></div>
+        </div>
+        <div class="h2cTextDiv">
+          <p class="h2cTitle h2cTextStyle"></p>
+          <p class="h2cDescription TextStyle3"></p>
+        </div>
+        <div class="h2cForegroundDiv">
+          <div class="h2cFilterDiv"></div>
+          <div class="h2cTagDiv h2cHTMLDiv">
+            <p class="h2cTag h2cHTMLTag h2cTextStyle">HTML</p>
+          </div>
+          <div class="h2cTagDiv h2cCSSDiv">
+            <p class="h2cTag h2cCSSTag h2cTextStyle">CSS</p>
+          </div>
+          <div class="h2cTagDiv h2cJSDiv">
+            <p class="h2cTag h2cJSTag h2cTextStyle">JS</p>
+          </div>
+          <div class="h2cTagDiv h2cTHREEJSDiv">
+            <p class="h2cTag h2cTHREEJSTag h2cTextStyle">THREEJS</p>
+          </div>
+          <div class="h2cTagDiv h2cJAVADiv">
+            <p class="h2cTag h2cJAVATag h2cTextStyle">JAVA</p>
+          </div>
+          <div class="h2cTagDiv h2cCPPDiv">
+            <p class="h2cTag h2cCPPTag h2cTextStyle">C++</p>
+          </div>
+          <div class="h2cTagDiv h2cBLENDERDiv">
+            <p class="h2cTag h2cBLENDERTag h2cTextStyle">BLENDER</p>
+          </div>
+          <div class="h2cTagDiv h2cAFTEREFFECTSDiv">
+            <p class="h2cTag h2cAFTEREFFECTSTag h2cTextStyle">AFTER EFFECTS</p>
+          </div>
+          <div class="h2cTagDiv h2cPREMIEREPRODiv">
+            <p class="h2cTag h2cPREMIEREPROTag h2cTextStyle">PREMIERE PRO</p>
+          </div>
+          <div class="h2cTagDiv h2cPHOTOSHOPDiv">
+            <p class="h2cTag h2cPHOTOSHOPTag h2cTextStyle">PHOTOSHOP</p>
+          </div>
+        </div>
+        <div class="h2cBorderDiv"></div>
+        <div class="h2cHoverDiv"></div>
+      </div>
 
       <div class="BackgroundDiv"></div>
       <div class="BackgroundVideoDiv">
-        <video class="BackgroundVideo" autoplay muted loop playsinline></video>
+        <video class="BackgroundVideo" autoplay muted loop></video>
+        <canvas class="BackgroundCanvas1"></canvas>
+        <canvas class="BackgroundCanvas2"></canvas>
       </div>
       <div class="HomeButtonDiv">
         <div class="HomeButtonIconDiv"></div>
@@ -163,6 +213,7 @@
           <div class="Slot2Div"></div>
         </section>
       </div>
+      <div class=""></div>
       <div class="PortfolioButtonDiv">
         <div class="PortfolioButtonTextDiv">
           <p class="PortfolioButtonText TextStyle2">View Portfolio</p>
@@ -190,6 +241,7 @@
         </div>
       </div>
     </div>
-    <script type="module" src="/src/indexMobile.js"></script>
+    <canvas class="test"></canvas>
+    <script type="module" src="/src/index.js"></script>
   </body>
 </html>

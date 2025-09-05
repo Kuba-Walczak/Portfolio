@@ -44,7 +44,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setAnimationLoop(render);
 const loaderManager = new THREE.LoadingManager(() => {
   renderer.compile(scene, camera);
-  gsap.to(".LoadingDiv", {opacity: 0, duration: 2});
+  console.log("rendered")
 })
 camera.updateProjectionMatrix();
 scene.updateMatrixWorld(true);
@@ -119,6 +119,17 @@ loader.load("Main/Models/SceneCompressed.glb", (glb) => {
 let iconComponentGroup = new THREE.Group();
 let raycastTargetArray = [];
 let primitiveArray = [];
+const projectType = {
+  PROGRAMMING: "programming",
+  TECHNICAL_ART: "technicalArt",
+  ART: "3D"
+};
+let iconParameters = [
+  [projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/KineticRush4.webm", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]],
+  [projectType.TECHNICAL_ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 2", "Description 2", ["blender", "js"]],
+  [projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 3", "Description 3", ["aftereffects"]],
+  [projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"]]
+];
 let iconArray = [];
 let iconGroupGroup = new THREE.Group();
 const h2cTags = {
@@ -167,13 +178,7 @@ loader.load("Main/Models/AssetsCompressed.glb", (glb) => {
   });
 
   //SETUP ASSETS
-  iconArray = [
-    new Icon(projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/KineticRush4.webm", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]),
-    new Icon(projectType.TECHNICAL_ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 2", "Description 2", ["blender", "js"]),
-    new Icon(projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 3", "Description 3", ["aftereffects"]),
-    new Icon(projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"])
-  ];
-  placeIcons();
+  loadIcons(iconParameters).then(() => {spawnIcons()});
   scrollTrigger();
 
   primitiveArray.forEach((primitive) => {
@@ -192,11 +197,9 @@ loader.load("Main/Models/AssetsCompressed.glb", (glb) => {
 let lastFrameTime = performance.now();
 let fps = null;
 
-const projectType = {
-  PROGRAMMING: "programming",
-  TECHNICAL_ART: "technicalArt",
-  ART: "3D"
-};
+let correctedCameraZ = camera.position.z;
+let finishedLoading = false;
+
 const activeFilters = {
   PROGRAMMING: true,
   TECHNICAL_ART: true,
@@ -243,8 +246,6 @@ let click = {
   time: performance.now()
 };
 let lastClick = null;
-
-let finishedLoading = false;
 //endregion
 
 function render() {
@@ -338,15 +339,15 @@ function render() {
               iconGroup.userData.tl.kill();
             const tl = gsap.timeline();
             iconGroup.userData.tl = tl;
-            tl.to(iconGroup.userData.iconHover.material, {opacity: 1, duration: 1}).addLabel("selected").call(() => {
+            tl.to(iconGroup.userData.iconHover.material, {opacity: 1, duration: 0.5, overwrite: "auto"}).addLabel("selected").call(() => {
             })
             .to(iconGroup.position, {z: -0.15, duration: 0.5, overwrite: "auto"}, ">")
-            .to(iconGroup.scale, {x: ICON_SCALE * iconGroup.userData.aspectRatio, duration: 1, overwrite: "auto"}, "<")
-            .to(iconGroup.userData.iconScreen.material.map.repeat, {x: 1, y: 1, duration: 1, overwrite: "auto"}, "<")
-            .to(iconGroup.userData.iconScreen.material.map.offset, {x: 0, y: 0, duration: 1, overwrite: "auto"}, "<")
             .to(iconGroup.userData.iconScreen.material, {opacity: 1, duration: 1, overwrite: "auto"}, "<")
             .to(iconGroup.userData.iconOverlay.material, {opacity: 0, duration: 0.1, overwrite: "auto"}, "<")
-            .to(iconGroup.userData.iconHover.material, {opacity: 0, duration: 0.1, overwrite: "auto"}, "<");
+            .to(iconGroup.userData.iconHover.material, {opacity: 0, duration: 0.1, overwrite: "auto"}, "<")
+            .to(iconGroup.scale, {x: ICON_SCALE * iconGroup.userData.aspectRatio, duration: 1, overwrite: "auto"}, ">")
+            .to(iconGroup.userData.iconScreen.material.map.repeat, {x: 1, y: 1, duration: 1, overwrite: "auto"}, "<")
+            .to(iconGroup.userData.iconScreen.material.map.offset, {x: 0, y: 0, duration: 1, overwrite: "auto"}, "<");
             break;
           case raycastResult.name === "MonitorButton":
             document.body.style.cursor = "pointer";
@@ -381,7 +382,7 @@ window.addEventListener("wheel", (event) => {
       scrollMonitorBy(event.deltaY * 0.2, 0.5, true)
     }
     else
-      scrollCameraBy(event.deltaY * 0.0007, 0.5);
+      scrollCameraBy(event.deltaY * 0.0008, 0.5);
 });
 
 window.addEventListener("mousemove", (event) => {
@@ -527,7 +528,7 @@ function resize() {
   canvas.style.height = `${divRect.height}px`;
 
   renderer.setSize(screenSize.width, screenSize.height, true);
-  camera.position.z = -0.9 * (screenSize.height / newHeight);
+  camera.position.z = correctedCameraZ * (screenSize.height / newHeight);
   camera.aspect = screenSize.width / screenSize.height;
   camera.updateProjectionMatrix();
 }
@@ -665,12 +666,18 @@ function scrollMonitorBy(deltaY, duration, boolean) {
   }
 }
 
+let s = 1;
+let lastScale = 1;
 function zoomCameraTo(scrollZ, duration) {
   const baseZoom = camera.position.z;
+
   gsap.to(camera.position, {z: scrollZ, duration: duration, ease: "power1.inOut", onUpdate: () => {
-      const s = baseZoom / camera.position.z + (gsap.getProperty(cameraWrapper.centeredDiv, "scale") - 1) / 20;
+      if (scrollZ <= -0.9)
+        s = lastScale * (baseZoom / camera.position.z);
+      else
+        s = lastScale * (baseZoom / camera.position.z) + (gsap.getProperty(cameraWrapper.centeredDiv, "scale") - 1) / 20;
       gsap.set(cameraWrapper.centeredDiv, {scale: s});
-      }
+      }, onComplete: () => {lastScale = gsap.getProperty(cameraWrapper.centeredDiv, "scale")}
   });
 }
 
@@ -739,9 +746,16 @@ function monitorState(boolean) {
   }
 }
 
-function placeIcons() {
+async function loadIcons(iconParameters) {
+  for (const parameters of iconParameters) {
+    iconArray.push(new Icon(...parameters));
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+}
+
+function spawnIcons() {
   if (!iconGroupGroup.children.length) {
-    spawnIcons();
+    spawnIconsHelper();
   }
   else {
     filterButtonsActive = false;
@@ -750,7 +764,7 @@ function placeIcons() {
       gsap.killTweensOf(child.scale);
       gsap.to(child.scale, {x: 0, y: 0, z: 0, duration: 0.2, overwrite: "auto", onComplete: () => {
           iconGroupGroup.remove(child);
-          spawnIcons();
+          spawnIconsHelper();
         }
       });
     });
@@ -759,7 +773,7 @@ function placeIcons() {
   scene.add(iconGroupGroup);
 }
 
-function spawnIcons() {
+function spawnIconsHelper() {
   const iconGroupSpawnerCurrentPosition = ICON_GROUP_SPAWNER_INITIAL_POSITION.clone();
   iconArray.forEach((iconGroup) => {
     Object.keys(projectType).some((type) => {
@@ -790,6 +804,10 @@ function spawnIcons() {
     if (filterButtonHover)
       document.body.style.cursor = "pointer";
   }
+}
+
+function updateProgressBar() {
+
 }
 
 class Icon {
@@ -973,15 +991,19 @@ class Icon {
 
 //ON LOAD
 //region
+//userLock = true;
 const videoPlayer = document.querySelector(".VideoPlayer");
 const playlist = ["https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/KineticRush2.webm", "https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/ChasmsCall2.webm"];
-document.querySelector(".testing2").addEventListener("click", () => {
+setTimeout(() => {
   finishedLoading = true;
+  gsap.to(".LoadingDiv", {opacity: 0, duration: 4});
   document.querySelector(".BackgroundVideo").src = "https://PortfolioPullZone.b-cdn.net/LandingPage/Background.webm";
   videoPlayer.src = playlist[0];
   videoPlayer.play();
   iconArray.forEach((child) => {child.video.play()});
-});
+  zoomCameraTo(-1.5, 0);
+  zoomCameraTo(-0.9, 2);
+}, 3000);
 gsap.set(cameraWrapper.centeredDiv, {xPercent: -50, yPercent: -50, y: 0});
 resize();
 //endregion
@@ -1066,7 +1088,7 @@ const portfolioButtonDiv = document.querySelector(".PortfolioButtonDiv");
 portfolioButtonDiv.addEventListener("click", () => {if (portfolioButtonActive && !userLock) {
   gsap.set(portfolioButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
   gsap.to(portfolioButtonDiv, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
-  scrollCameraTo(-MAX_SCROLL, 3)
+  scrollCameraTo(-MAX_SCROLL, 2)
 }});
 
 const homeSection = document.querySelector(".HomeSection");
@@ -1110,7 +1132,7 @@ else {
     activeFilters.PROGRAMMING = true;
     filterIcon1Div.forEach((child) => {child.style.backgroundColor = "lightgreen"});
   }
-  placeIcons();
+  spawnIcons();
 }
 });
 const filter2ButtonDiv = document.querySelector(".Filter2Div");
@@ -1127,7 +1149,7 @@ filter2ButtonDiv.addEventListener("click", () => {
       activeFilters.TECHNICAL_ART = true;
       filterIcon2Div.forEach((child) => {child.style.backgroundColor = "yellow"});
     }
-    placeIcons();
+    spawnIcons();
   }
 });
 const filter3ButtonDiv = document.querySelector(".Filter3Div");
@@ -1144,7 +1166,7 @@ filter3ButtonDiv.addEventListener("click", () => {
       activeFilters.ART = true;
       filterIcon3Div.forEach((child) => {child.style.backgroundColor = "lightcoral"});
     }
-    placeIcons();
+    spawnIcons();
   }
 });
 
