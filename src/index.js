@@ -5,7 +5,7 @@ import {gsap} from "gsap";
 import html2canvas from "html2canvas";
 
 //CONSTANTS
-const mobileUser = false;
+const mobileUser = "ontouchstart" in window || navigator.maxTouchPoints > 0;;
 const MAIN_COLOR = {
   r: 67,
   g: 59,
@@ -54,7 +54,10 @@ const loaderManager = new THREE.LoadingManager(() => {
     gsap.set(".LoadingIcon", {opacity: 1, overwrite: "auto"});
   }
   else {
-    gsap.set(".MobileText", {opacity: 1, overwrite: "auto"});
+    gsap.set(".MobileDiv", {opacity: 1, overwrite: "auto"});
+    document.querySelector(".MobileButtonDiv").addEventListener("touchstart", () => {
+      window.open("https://www.instagram.com/kubawalczak005/");
+    })
   }
 })
 camera.updateProjectionMatrix();
@@ -908,15 +911,17 @@ function onLoad() {
   videoPlayer.play();
   iconArray.forEach((child) => {child.video.play()});
   if (screenSize.width / screenSize.height > 16 / 9) {
-    zoomCameraTo(-1.5, 0);
+    zoomCameraTo(-1.2, 0);
     zoomCameraTo(-0.9, 2);
   }
   else {
-    zoomCameraTo(-0.9 * (screenSize.height / screenSize.width * 16 / 9) * 1.5, 0);
+    zoomCameraTo(-0.9 * (screenSize.height / screenSize.width * 16 / 9) * 1.2, 0);
     zoomCameraTo(-0.9 * (screenSize.height / screenSize.width * 16 / 9), 2);
   }
-  setTimeout(() => {userLock = false}, 2000);
   finishedLoading = true;
+  setTimeout(() => {
+    userLock = false;
+    gsap.set(".LoadingDiv", {pointerEvents: "none", overwrite: "auto"})}, 2000);
 }
 
 class Icon {
