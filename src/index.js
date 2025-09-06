@@ -3,9 +3,9 @@ import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 import {DRACOLoader} from "three/examples/jsm/loaders/DRACOLoader.js";
 import {gsap} from "gsap";
 import html2canvas from "html2canvas";
-import { afterImage } from 'three/addons/tsl/display/AfterImageNode.js';
 
 //CONSTANTS
+const mobileUser = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 const MAIN_COLOR = {
   r: 67,
   g: 59,
@@ -49,8 +49,13 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setAnimationLoop(render);
 const loaderManager = new THREE.LoadingManager(() => {
-  renderer.compile(scene, camera);
-  gsap.set(document.querySelectorAll(".LoadingIcon"), {opacity: 1, overwrite: "auto"});
+  if (!mobileUser) {
+    renderer.compile(scene, camera);
+    gsap.set(".LoadingIcon", {opacity: 1, overwrite: "auto"});
+  }
+  else {
+    gsap.set(".MobileText", {opacity: 1, overwrite: "auto"});
+  }
 })
 camera.updateProjectionMatrix();
 scene.updateMatrixWorld(true);
@@ -184,8 +189,9 @@ loader.load("LandingPage/Models/AssetsCompressed.glb", (glb) => {
   });
 
   //SETUP ASSETS
-  loadIcons(iconParameters).then(() => {spawnIcons(true)});
-  scrollTrigger();
+  if (!mobileUser) {
+    loadIcons(iconParameters).then(() => {spawnIcons(true)});
+  }
 
   primitiveArray.forEach((primitive) => {
     if (Math.random() > 0.8)
@@ -244,7 +250,7 @@ const backgroundVideo = document.querySelector(".BackgroundVideo");
 const backgroundCanvas1 = document.querySelector(".BackgroundCanvas1");
 const backgroundCanvas2 = document.querySelector(".BackgroundCanvas2");
 [backgroundCanvas1, backgroundCanvas2].forEach(canvas => {
-  canvas.width = 2560;
+  canvas.width = 1000;
   canvas.height = 2560;
 });
 let click = {
@@ -890,14 +896,14 @@ function updateLoading() {
     setTimeout(() => {onLoad()}, 500);
   }
   else {
-    gsap.set(".LoadingIcon", {"--progress": `+=${loadingProgress / isLoaded * 100}%`, overwrite: "auto"});
+    gsap.set(".LoadingIcon", {"--progress": `+=${loadingProgress / isLoaded * 75}%`, overwrite: "auto"});
   }
 }
 
 function onLoad() {
   gsap.set(cameraWrapper.centeredDiv, {xPercent: -50, yPercent: -50, y: 0});
   gsap.to(".LoadingDiv", {opacity: 0, duration: 4});
-  document.querySelector(".BackgroundVideo").src = "https://PortfolioPullZone.b-cdn.net/LandingPage/Background.webm";
+  document.querySelector(".BackgroundVideo").src = "https://PortfolioPullZone.b-cdn.net/LandingPage/BackgroundStrip.webm";
   videoPlayer.src = playlist[0];
   videoPlayer.play();
   iconArray.forEach((child) => {child.video.play()});
@@ -1206,3 +1212,5 @@ document.querySelectorAll(".LogoDiv")[1].addEventListener("click", () => {
 //endregion
 
 resize();
+scrollTrigger();
+scrollTrigger();
