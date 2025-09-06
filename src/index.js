@@ -55,7 +55,7 @@ const loaderManager = new THREE.LoadingManager(() => {
   }
   else {
     gsap.set(".MobileDiv", {opacity: 1, overwrite: "auto"});
-    document.querySelector(".MobileButtonDiv").addEventListener("touchstart", () => {
+    document.querySelector(".MobileButtonDiv").addEventListener("click", () => {
       window.open("https://www.instagram.com/kubawalczak005/");
     })
   }
@@ -455,7 +455,7 @@ window.addEventListener("mousedown", (event) => {
         }
         else {
           activeFilters.TECHNICAL_ART = true;
-          document.querySelectorAll(".FilterIcon2Div").forEach((child) => {child.style.backgroundColor = "yellow"});
+          document.querySelectorAll(".FilterIcon2Div").forEach((child) => {child.style.backgroundColor = "#ffff8d"});
         }
         spawnIcons();
         break;
@@ -581,7 +581,7 @@ window.addEventListener("mouseup", () => {
   }});
 
 window.addEventListener("resize", () => {
-  if (userLock)
+  if (userLock && !mobileUser)
     location.reload();
   else {
     resize();
@@ -711,17 +711,18 @@ function scrollTrigger() {
 
 function scrollCameraBy(deltaY, duration) {
   const afterScroll = cameraWrapper.camera.position.y - deltaY;
+  cameraWrapper.centeredDiv.style.willChange = "transform";
   if (afterScroll >= 0) {
     gsap.to(cameraWrapper.camera.position, {y: 0, duration: duration, overwrite: true, onUpdate: scrollTrigger});
-    gsap.to(cameraWrapper.centeredDiv, {y: 0, duration: duration, overwrite: true});
+    gsap.to(cameraWrapper.centeredDiv, {y: 0, duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredDiv.style.willChange = "auto"}});
   }
   else if (afterScroll <= -MAX_SCROLL) {
     gsap.to(cameraWrapper.camera.position, {y: -MAX_SCROLL, duration: duration, overwrite: true, onUpdate: scrollTrigger});
-    gsap.to(cameraWrapper.centeredDiv, {y: -MAX_SCROLL * divPositionMultiplier * gsap.getProperty(cameraWrapper.centeredDiv, "scale"), duration: duration, overwrite: true});
+    gsap.to(cameraWrapper.centeredDiv, {y: -MAX_SCROLL * divPositionMultiplier * gsap.getProperty(cameraWrapper.centeredDiv, "scale"), duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredDiv.style.willChange = "auto"}});
   }
   else {
     gsap.to(cameraWrapper.camera.position, {y: `-=${deltaY}`, duration: duration, overwrite: true, onUpdate: scrollTrigger});
-    gsap.to(cameraWrapper.centeredDiv, {y: `-=${deltaY * divPositionMultiplier * gsap.getProperty(cameraWrapper.centeredDiv, "scale")}`, duration: duration, overwrite: true});
+    gsap.to(cameraWrapper.centeredDiv, {y: `-=${deltaY * divPositionMultiplier * gsap.getProperty(cameraWrapper.centeredDiv, "scale")}`, duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredDiv.style.willChange = "auto"}});
   }
 }
 

@@ -10,11 +10,11 @@
     src: url("public/Fonts/Inter_28pt-Regular.ttf");
 }
 @font-face {
-    font-family: "Inter Standard";
+    font-family: "Inter Bold";
     src: url("public/Fonts/Inter_28pt-ExtraBold.ttf");
 }
 @font-face {
-    font-family: "Inter Bold";
+    font-family: "Inter Standard";
     src: url("public/Fonts/Inter_28pt-Bold.ttf");
 }
 @font-face {
@@ -36,7 +36,7 @@ p.TextStyle1 {
 }
 p.TextStyle2 {
     position: absolute;
-    font-family: "Inter Standard", sans-serif;
+    font-family: "Inter Bold", sans-serif;
     margin: 0;
     background: linear-gradient(to bottom, white, rgba(var(--text-color-rgb), 1), rgba(var(--main-color-rgb), 1));
     background-clip: text;
@@ -49,8 +49,10 @@ p.TextStyle2 {
 p.TextStyle3 {
     position: absolute;
     font-family: "Inter Thin", sans-serif;
-    color: white;
     margin: 0;
+    background: linear-gradient(to bottom, white, rgba(var(--text-color-rgb), 1), rgba(var(--main-color-rgb), 1));
+    background-clip: text;
+    color: transparent;
     user-select: none;
     pointer-events: none;
     white-space: nowrap;
@@ -58,7 +60,7 @@ p.TextStyle3 {
 }
 p.TextStyle4 {
     position: absolute;
-    font-family: "Inter Bold", sans-serif;
+    font-family: "Inter Standard", sans-serif;
     margin: 0;
     background: linear-gradient(to bottom, white, rgba(var(--text-color-rgb), 1), rgba(var(--main-color-rgb), 1));
     background-clip: text;
@@ -99,7 +101,7 @@ div.html2canvasDiv {
     width: 1000px;
     height: 1000px;
     left: 50%;
-    top: 30%;
+    top: 50%;
     transform: translate(-50%, -50%);
     z-index: 99;
     background: pink;
@@ -140,9 +142,9 @@ div.h2cBar1Div {
 div.h2cBar2Div {
     position: absolute;
     width: 90%;
-    height: 20%;
+    height: 25%;
     left: 5%;
-    top: 75%;
+    top: 70%;
     background: rgba(255, 255, 255, 0.2);
     border-radius: 25px;
     border-style: solid;
@@ -157,17 +159,18 @@ div.h2cTextDiv {
 }
 p.h2cTitle {
     position: absolute;
-    top: 77%;
+    top: 72%;
     left: 8%;
     color: rgba(255, 255, 255, 0.7);
-    font-size: 30%;
+    font-size: 60px;
 }
 p.h2cDescription {
     position: absolute;
-    top: 85%;
+    top: 79%;
     left: 8.2%;
+    background: transparent;
     color: rgba(255, 255, 255, 0.7);
-    font-size: 15%;
+    font-size: 40px;
 }
 div.h2cForegroundDiv {
     position: absolute;
@@ -199,7 +202,7 @@ p.h2cTag {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 19%;
+    font-size: 40px;
     color: white;
 }
 div.h2cHTMLDiv {
@@ -315,23 +318,18 @@ div.MobileDiv {
 }
 p.MobileText {
     position: absolute;
-    left: 9%;
-    z-index: 99;
+    left: 9.5%;
+    top: 5%;
     font-size: 5vw;
     color: white;
-}
-p.MobileText1 {
-    top: 5%;
-}
-p.MobileText2{
-    top: 8%;
+    z-index: 99;
 }
 div.MobileButtonDiv {
     position: absolute;
     height: 30%;
     aspect-ratio: 1 / 1;
     left: 50%;
-    top: 30%;
+    top: 50%;
     transform: translate(-50%, -50%);
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
@@ -389,7 +387,6 @@ div.CenteredDiv {
     overflow: visible;
     top: 50%;
     left: 50%;
-    will-change: transform;
 }
 div.BackgroundDiv {
     position: absolute;
@@ -533,9 +530,7 @@ div.SkillIconDivDiv1 {
     position: absolute;
     width: 32%;
     height: 100%;
-    background:
-            radial-gradient(circle at 0% 100%, black, transparent),
-            radial-gradient(circle at 100% 0%, black, transparent), rgba(var(--main-color-rgb), 0);
+    background: black;
     border-radius: 10px;
     box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.5);
 }
@@ -568,9 +563,7 @@ div.SkillIconDivDiv2 {
     width: 32%;
     height: 100%;
     left: 34%;
-    background:
-            radial-gradient(circle at 0% 100%, black, transparent),
-            radial-gradient(circle at 100% 0%, black, transparent), rgba(var(--main-color-rgb), 0);
+    background: black;
     border-radius: 10px;
     box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.5);
 }
@@ -595,9 +588,7 @@ div.SkillIconDivDiv3 {
     width: 32%;
     height: 100%;
     left: 68%;
-    background:
-            radial-gradient(circle at 0% 100%, black, transparent),
-            radial-gradient(circle at 100% 0%, black, transparent), rgba(var(--main-color-rgb), 0);
+    background: black;
     border-radius: 10px;
     box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.5);
 }
@@ -702,9 +693,7 @@ div.EducationDiv {
     height: 20%;
     top: 37%;
     left: 4%;
-    background:
-            radial-gradient(circle at 0% 100%, black, transparent),
-            radial-gradient(circle at 100% 0%, black, transparent), rgba(var(--main-color-rgb), 0);
+    background: black;
     border-radius: 10px;
     box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.5);
 }
@@ -744,36 +733,40 @@ p.EducationText2 {
     top: 59%;
     left: 20%;
     font-size: 9.5%;
+    color: white
 }
 p.EducationText3 {
     position: absolute;
     top: 69%;
     left: 20%;
     font-size: 7%;
+    color: white
 }
 div.DescriptionDiv {
     position: absolute;
     width: 60%;
-    height: 30%;
+    height: 33%;
     top: 58%;
     left: 4%;
-    background:
-            radial-gradient(circle at 0% 100%, black, transparent),
-            radial-gradient(circle at 100% 0%, black, transparent), rgba(var(--main-color-rgb), 0);
+    background: black;
     border-radius: 10px;
     box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.5);
 }
 p.DescriptionTitleText {
     position: absolute;
-    top: 10%;
+    top: 7%;
     left: 5%;
     font-size: 20%;
 }
 p.DescriptionText {
     position: absolute;
-    top: 40%;
-    left: 10%;
-    font-size: 10%;
+    top: 12%;
+    font-size: 9.5%;
+    color: white;
+    padding: 6.5%;
+    line-height: 1.7;
+    white-space: normal;
+    text-align: justify;
 }
 div.AboutButtonDiv {
     position: absolute;
