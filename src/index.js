@@ -5,7 +5,7 @@ import {gsap} from "gsap";
 import html2canvas from "html2canvas";
 
 //CONSTANTS
-const mobileUser = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+const mobileUser = false;
 const MAIN_COLOR = {
   r: 67,
   g: 59,

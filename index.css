@@ -310,7 +310,12 @@ div.LoadingDiv {
 }
 p.MobileText {
     position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     z-index: 99;
+    opacity: 0;
+    font-size: 200%;
 }
 div.LoadingIcon {
     position: absolute;
@@ -322,6 +327,7 @@ div.LoadingIcon {
     mask-size: cover;
     opacity: 0;
     z-index: 99;
+    pointer-events: none;
 }
 div.LoadingIcon1 {
     background: #101010;
@@ -333,6 +339,7 @@ div.LoadingIconDiv {
     height: 100%;
     z-index: 99;
     filter: blur(0.3vh);
+    pointer-events: none;
 }
 div.LoadingIcon2 {
     background: url("public/LandingPage/Icons/LoadingIcon.svg");
