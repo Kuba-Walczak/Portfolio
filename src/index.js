@@ -494,7 +494,7 @@ window.addEventListener("mousedown", (event) => {
             const slotDiv = document.querySelector(".Slot2Div");
             gsap.to(iconGroup.position, {x: 0, y: 0, z: -0.1, duration: 1, overwrite: "auto"});
             tl.to(iconGroup.scale, {x: 0, y: 0, z: 0, duration: 1, overwrite: "auto"}).to(slotDiv, {"--radius": "150%", duration: 1.5, overwrite: "auto"});
-            playVideo();
+            diveIn();
           }
           else {
             const tl = gsap.timeline();
@@ -552,7 +552,7 @@ window.addEventListener("mouseup", () => {
           const slotDiv = document.querySelector(".Slot2Div");
           gsap.to(dragging.position, {x: 0, y: 0, z: 0, duration: 0.5, overwrite: "auto"});
           tl.to(dragging.scale, {x: 0, y: 0, z: 0, duration: 0.5, overwrite: "auto"}).to(slotDiv, {"--radius": "150%", duration: 1.5, overwrite: "auto"});
-          playVideo();
+          diveIn();
         }
         else {
           document.body.style.cursor = "grab";
@@ -710,8 +710,8 @@ function scrollTrigger() {
 }
 
 function scrollCameraBy(deltaY, duration) {
-  const afterScroll = cameraWrapper.camera.position.y - deltaY;
   cameraWrapper.centeredDiv.style.willChange = "transform";
+  const afterScroll = cameraWrapper.camera.position.y - deltaY;
   if (afterScroll >= 0) {
     gsap.to(cameraWrapper.camera.position, {y: 0, duration: duration, overwrite: true, onUpdate: scrollTrigger});
     gsap.to(cameraWrapper.centeredDiv, {y: 0, duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredDiv.style.willChange = "auto"}});
@@ -727,8 +727,9 @@ function scrollCameraBy(deltaY, duration) {
 }
 
 function scrollCameraTo(Y, duration) {
+  cameraWrapper.centeredDiv.style.willChange = "transform";
   gsap.to(cameraWrapper.camera.position, {y: Y, duration: duration, overwrite: "auto", onUpdate: scrollTrigger});
-  gsap.to(cameraWrapper.centeredDiv, {y: Y * divPositionMultiplier, duration: duration, overwrite: "auto"});
+  gsap.to(cameraWrapper.centeredDiv, {y: Y * divPositionMultiplier, duration: duration, overwrite: "auto", onComplete: () => {cameraWrapper.centeredDiv.style.willChange = "auto"}});
 }
 
 function scrollMonitorBy(deltaY, duration, boolean) {
@@ -737,17 +738,18 @@ function scrollMonitorBy(deltaY, duration, boolean) {
     clearInterval(scrollShowInterval);
     scrollShowInterval = null;
   }
+  cameraWrapper.scrollDiv.style.willChange = "transform";
   const afterScroll = cameraWrapper.scrollDiv.offsetTop / cameraWrapper.scrollDiv.parentElement.clientHeight * -100 + deltaY;
   if (afterScroll <= 0) {
-    gsap.to(cameraWrapper.scrollDiv, {top: "0%", duration: duration, overwrite: "auto"});
+    gsap.to(cameraWrapper.scrollDiv, {top: "0%", duration: duration, overwrite: "auto", onComplete: () => {cameraWrapper.scrollDiv.style.willChange = "auto"}});
     gsap.to(cameraWrapper.faceForegroundImage, {top: "71%", width: "30%", duration: duration, overwrite: "auto"});
   }
   else if (afterScroll >= 100) {
-    gsap.to(cameraWrapper.scrollDiv, {top: "-100%", duration: duration, overwrite: "auto"});
+    gsap.to(cameraWrapper.scrollDiv, {top: "-100%", duration: duration, overwrite: "auto", onComplete: () => {cameraWrapper.scrollDiv.style.willChange = "auto"}});
     gsap.to(cameraWrapper.faceForegroundImage, {top: "46%", width: "35%", duration: duration, overwrite: "auto"});
   }
   else {
-    gsap.to(cameraWrapper.scrollDiv, {top: `-=${deltaY}%`, duration: duration, overwrite: "auto"});
+    gsap.to(cameraWrapper.scrollDiv, {top: `-=${deltaY}%`, duration: duration, overwrite: "auto", onComplete: () => {cameraWrapper.scrollDiv.style.willChange = "auto"}});
     gsap.to(cameraWrapper.faceForegroundImage, {top: `-=${deltaY / 4}%`, width: `+=${deltaY / 20}%`, duration: duration, overwrite: "auto"});
   }
 }
@@ -766,7 +768,7 @@ function zoomCameraTo(scrollZ, duration, boolean) {
   });
 }
 
-function playVideo() {
+function diveIn() {
   scrollCameraTo(0, 1);
   zoomCameraTo(-0.35, 2, true)
   //setTimeout(() => window.open("project 1.html", "_self"), 2000);
@@ -822,7 +824,7 @@ function monitorState(boolean) {
       scrollShowInterval = setInterval(() => {
         scrollMonitorBy(5, 2);
         setTimeout(() => scrollMonitorBy(-5, 0.5), 2000);
-      }, 5000);
+      }, 10000);
   }
   else {
     monitorActive = false;
@@ -1218,5 +1220,4 @@ document.querySelectorAll(".LogoDiv")[1].addEventListener("click", () => {
 //endregion
 
 resize();
-scrollTrigger();
 scrollTrigger();
