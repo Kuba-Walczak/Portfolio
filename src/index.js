@@ -428,7 +428,7 @@ window.addEventListener("mousedown", (event) => {
         gsap.set(".AboutButtonDiv", { backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
         gsap.to(".AboutButtonDiv", { backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
         monitorState(true);
-        gsap.to(".AboutSection", { opacity: 1, duration: 0.5, overwrite: "auto"});
+        gsap.to(".AboutSection", { opacity: 0.9, duration: 0.5, overwrite: "auto"});
         gsap.to(".HomeSection", { opacity: 0, duration: 0.5, overwrite: "auto"});
         break;
       }
@@ -565,7 +565,7 @@ window.addEventListener("mouseup", () => {
             const aboutSection = document.querySelector(".AboutSection");
             const slotSection = document.querySelector(".SlotSection");
             if (monitorActive)
-              gsap.to(aboutSection, {opacity: 1, duration: 1});
+              gsap.to(aboutSection, {opacity: 0.9, duration: 1});
             else
               gsap.to(homeSection, {opacity: 1, duration: 1});
             gsap.to(slotSection, {opacity: 0, duration: 1});
@@ -910,8 +910,10 @@ function onLoad() {
   gsap.set(cameraWrapper.centeredDiv, {xPercent: -50, yPercent: -50, y: 0});
   gsap.to(".LoadingDiv", {opacity: 0, duration: 4});
   document.querySelector(".BackgroundVideo").src = "https://PortfolioPullZone.b-cdn.net/LandingPage/BackgroundStrip.webm";
-  videoPlayer.src = playlist[0];
-  videoPlayer.play();
+  videoPlayer1.src = playlist[0];
+  videoPlayer2.src = playlist[0];
+  videoPlayer1.play();
+  videoPlayer2.play();
   iconArray.forEach((child) => {child.video.play()});
   if (screenSize.width / screenSize.height > 16 / 9) {
     zoomCameraTo(-1.2, 0);
@@ -1108,39 +1110,35 @@ class Icon {
 
 //VIDEO PLAYER
 // region
-const videoPlayer = document.querySelector(".VideoPlayer");
+const videoPlayer1 = document.querySelector(".VideoPlayer1");
+const videoPlayer2 = document.querySelector(".VideoPlayer2");
 const playlist = ["https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/KineticRush2.webm", "https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/ChasmsCall2.webm"];
 let currentIndex = 0;
-videoPlayer.addEventListener("ended", () => {
+videoPlayer1.addEventListener("ended", () => {
   if (++currentIndex < playlist.length) {
-    videoPlayer.src = playlist[currentIndex];
-    videoPlayer.play();
+    videoPlayer1.src = playlist[currentIndex];
+    videoPlayer2.src = playlist[currentIndex];
+    videoPlayer1.play();
+    videoPlayer2.play();
   } else {
     currentIndex = 0;
-    videoPlayer.src = playlist[currentIndex];
-    videoPlayer.play();
+    videoPlayer1.src = playlist[currentIndex];
+    videoPlayer2.src = playlist[currentIndex];
+    videoPlayer1.play();
+    videoPlayer2.play();
   }
 });
-//endregion
-
-//MONITOR GLOW LOOP
-//region
-const obj = {value: 0};
-gsap.to(obj, {value: 1, duration: 5, repeat: -1, yoyo: true, ease: "sine.inOut", onUpdate: () => {
-    const alpha = obj.value;
-    document.querySelector(".MonitorGlowDiv").style.setProperty("--bg", `rgba(${MAIN_COLOR.r}, ${MAIN_COLOR.g}, ${MAIN_COLOR.b}, ${alpha})`);
-  }});
 //endregion
 
 //HOME SECTION HOVER
 //region
 document.querySelector(".MonitorDiv").addEventListener("mouseenter", () => {
   monitorDivHover = true;
-  gsap.to(videoPlayer, {opacity: 0.5, duration: 0.2, overwrite: "auto"});
+  gsap.to(videoPlayer2, {opacity: 0.7, duration: 0.2, overwrite: "auto"});
 });
 document.querySelector(".MonitorDiv").addEventListener("mouseleave", () => {
   monitorDivHover = false;
-  gsap.to(videoPlayer, {opacity: 0.3, duration: 1, overwrite: "auto"});
+  gsap.to(videoPlayer2, {opacity: 0.5, duration: 1, overwrite: "auto"});
 });
 //endregion
 
