@@ -53,6 +53,7 @@ const loaderManager = new THREE.LoadingManager(() => {
   if (!mobileUser) {
     renderer.compile(scene, camera);
     gsap.set(".LoadingIcon", {opacity: 1, overwrite: "auto"});
+    updateLoading();
   }
   else {
     gsap.set(".MobileDiv", {opacity: 1, overwrite: "auto"});
@@ -140,10 +141,10 @@ const projectType = {
   ART: "3D"
 };
 let iconParameters = [
-  [projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/KineticRush4.webm", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]],
-  [projectType.TECHNICAL_ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 2", "Description 2", ["blender", "js"]],
-  [projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 3", "Description 3", ["aftereffects"]],
-  [projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"]]
+  //[projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/KineticRush4.webm", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]],
+  //[projectType.TECHNICAL_ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 2", "Description 2", ["blender", "js"]],
+  //[projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 3", "Description 3", ["aftereffects"]],
+  //[projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"]]
 ];
 let iconArray = [];
 let iconGroupGroup = new THREE.Group();
@@ -179,8 +180,8 @@ loader.load("LandingPage/Models/AssetsCompressed.glb", (glb) => {
       case child.name === "IconHitbox":
         child.material = new THREE.MeshBasicMaterial({visible: false});
         break;
-      case child.name.includes("Wireframe"):
-        child.material = new THREE.MeshBasicMaterial({color: MAIN_COLOR_NORMALIZED, opacity: 0.02, transparent: true});
+      case child.name === "Wireframe1":
+        child.material = new THREE.MeshBasicMaterial({color: MAIN_COLOR_NORMALIZED, opacity: 0.03, transparent: true});
         for (let i = 0; i < 5; ++i) {
           const clone = child.clone();
           primitiveArray.push(clone);
@@ -199,9 +200,9 @@ loader.load("LandingPage/Models/AssetsCompressed.glb", (glb) => {
 
   primitiveArray.forEach((primitive) => {
     if (Math.random() > 0.8)
-      randomizePosition(primitive, -1, 1, -1, 0.5,0.2, 1);
+      randomizePosition(primitive, -0.1, 0.1, -1, 0.5,0.1, 0.2);
     else
-      randomizePosition(primitive, -1, 1, -1, 0.5,0.2, 1);
+      randomizePosition(primitive, -0.1, 0.1, -1, 0.5,0.1, 0.2);
     ambientAnimation(primitive);
     scene.add(primitive);
   });
@@ -429,7 +430,7 @@ window.addEventListener("mousedown", (event) => {
         gsap.set(".AboutButtonDiv", { backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
         gsap.to(".AboutButtonDiv", { backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
         monitorState(true);
-        gsap.to(".AboutSection", { opacity: 0.9, duration: 0.5, overwrite: "auto"});
+        gsap.to(".AboutSection", { opacity: 1, duration: 0.5, overwrite: "auto"});
         gsap.to(".HomeSection", { opacity: 0, duration: 0.5, overwrite: "auto"});
         break;
       }
@@ -566,7 +567,7 @@ window.addEventListener("mouseup", () => {
             const aboutSection = document.querySelector(".AboutSection");
             const slotSection = document.querySelector(".SlotSection");
             if (monitorActive)
-              gsap.to(aboutSection, {opacity: 0.9, duration: 1});
+              gsap.to(aboutSection, {opacity: 1, duration: 1});
             else
               gsap.to(homeSection, {opacity: 1, duration: 1});
             gsap.to(slotSection, {opacity: 0, duration: 1});
@@ -782,8 +783,8 @@ function randomizePosition(object, minX, maxX, minY, maxY, minZ, maxZ) {
 }
 
 function ambientAnimation(obj) {
-  const positionDeviation = 0.3;
-  const rotationDeviation = Math.PI * 3;
+  const positionDeviation = 0.2;
+  const rotationDeviation = Math.PI;
   const target = {
     x: obj.position.x + randomValueBounds(-positionDeviation, positionDeviation),
     y: obj.position.y + randomValueBounds(-positionDeviation, positionDeviation),
@@ -898,7 +899,7 @@ function spawnIconsHelper(boolean) {
 
 function updateLoading() {
   const isLoaded = iconParameters.length;
-  if (++loadingProgress === isLoaded) {
+  if (++loadingProgress === isLoaded || !iconParameters.length) {
     gsap.to(".LoadingIcon", {opacity: 0, duration: 0.5, overwrite: "auto"});
     setTimeout(() => {onLoad()}, 500);
   }
