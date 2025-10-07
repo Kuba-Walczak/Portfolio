@@ -1,0 +1,236 @@
+:root {
+    --bg: #0f1724;
+    --glass-bg: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.12);
+    --text: #e6eef8;
+    --accent: #6ee7b7;
+    --accent-2: #7dd3fc;
+    --glow-strength: 0.45;
+    --btn-radius: 100px;
+    --btn-padding: 14px 28px;
+}
+
+@font-face {
+    font-family: "Inter Bolder";
+    src: url("public/Fonts/Inter_28pt-Black.ttf");
+}
+
+.BeforeGlass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+body {
+    background: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+div.AspectRatioLockDiv {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
+}
+
+.BackgroundGlow {
+    position: absolute;
+    height: 200%;
+    width: 200%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(deepskyblue, blue);
+}
+
+.BackgroundDiv::before {
+    background: linear-gradient(45deg, rgba(255,255,255,0.3), rgba(255,255,255,0), rgba(255,255,255,0.3));
+}
+
+.BackgroundDiv {
+    position: absolute;
+    height: 80%;
+    width: 80%;
+    top: 10%;
+    left: 50%;
+    transform: translate(-50%, 0);
+    background: transparent;
+    backdrop-filter: blur(10px) saturate(120%);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 100px rgba(255,255,255,0.5);
+    overflow: hidden;
+}
+
+.TopBarDiv::before {
+    background: linear-gradient(45deg, rgba(255,255,255,0), rgba(105,0,255,0.2));
+}
+
+.TopBarDiv {
+    position: absolute;
+    height: 9%;
+    width: 97%;
+    top: 3%;
+    left: 50%;
+    transform: translate(-50%, 0);
+    background: transparent;
+    backdrop-filter: blur(10px) saturate(120%);
+    border-radius: 1000px;
+    border: 2px solid var(--glass-border);
+    box-shadow:
+            0 0 50px rgba(255, 255, 255,0.9),
+            inset 2px 2px 0 rgba(255,255,255,0.2);
+    overflow: hidden;
+}
+
+.TitleText {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.2em;
+    font-family: "Inter Bolder", sans-serif;
+    color: var(--text);
+    padding: var(--btn-padding);
+}
+
+.CloseButtonDiv::before {
+    background:
+            radial-gradient(circle at 50% 100%, rgba(255,255,255,0.05), rgba(255,255,255,0)),
+            linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0), rgba(255,255,255,0.1));
+}
+
+.CloseButtonDiv {
+    position: absolute;
+    width: 4%;
+    aspect-ratio: 1 / 1;
+    top: 50%;
+    left: 97%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px) saturate(120%);
+    border-radius: var(--btn-radius);
+    border: 4px solid var(--glass-border);
+    cursor: pointer;
+    box-shadow:
+            0 0 50px rgba(255,255,255,0.2),
+            inset 2px 2px 0 rgba(255,255,255,0.2);
+    overflow: hidden;
+}
+
+.CloseIconDiv {
+    position: absolute;
+    width: 70%;
+    padding-bottom: 70%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(lightcoral, red);
+    mask-image: url("public/CppGame/Icons/CloseIcon.svg");
+    mask-size: contain;
+}
+
+.OverviewDiv::before {
+    background: linear-gradient(45deg, rgba(255,255,255,0), rgba(105,0,255,0.2));
+}
+
+.OverviewDiv {
+    position: absolute;
+    height: 40%;
+    width: 30%;
+    top: 20%;
+    left: 5%;
+    background: black;
+    backdrop-filter: blur(10px) saturate(120%);
+    border-radius: var(--btn-radius);
+    border: 2px solid var(--glass-border);
+    box-shadow:
+            0 0 100px rgba(255,255,255,0.1),
+            inset 2px 2px 0 rgba(255,255,255,0.5);
+    overflow: hidden;
+}
+
+.glass-btn::before {
+    background:
+            radial-gradient(circle at 50% 100%, rgba(255,255,255,0.05), rgba(255,255,255,0)),
+            linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0), rgba(255,255,255,0.1));
+}
+
+.glass-btn {
+    position: absolute;
+    width: 15%;
+    height: 80%;
+    top: 50%;
+    left: 8%;
+    transform: translate(-50%, -50%);
+    background: transparent;
+    backdrop-filter: blur(10px) saturate(120%);
+    border-radius: 1000px;
+    border: 2px solid var(--glass-border);
+    cursor: pointer;
+    box-shadow:
+        0 0 50px rgba(20,60,23,0.9),
+        inset 2px 2px 0 rgba(255,255,255,0.2);
+    overflow: hidden;
+    font-size: 100%;
+}
+
+.label {
+    position: absolute;
+    top: 47%;
+    left: 55%;
+    transform: translate(-50%, -50%);
+    font-size: 0.1em;
+    font-family: "Inter Bolder", sans-serif;
+    color: var(--text);
+    letter-spacing: 5px;
+    padding: var(--btn-padding);
+}
+
+.glass-btn2::before {
+    background:
+            radial-gradient(circle at 50% 100%, rgba(255,255,255,0.05), rgba(255,255,255,0)),
+            linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0), rgba(255,255,255,0.1));
+}
+
+.glass-btn2 {
+    position: absolute;
+    width: 15%;
+    height: 80%;
+    top: 50%;
+    left: 24%;
+    transform: translate(-50%, -50%);
+    background: transparent;
+    backdrop-filter: blur(10px) saturate(120%);
+    border-radius: 1000px;
+    border: 2px solid var(--glass-border);
+    cursor: pointer;
+    box-shadow:
+            0 0 50px rgba(20,60,23,0.9),
+            inset 2px 2px 0 rgba(255,255,255,0.2);
+    overflow: hidden;
+    font-size: 100%;
+}
+
+.label2 {
+    position: absolute;
+    top: 47%;
+    left: 55%;
+    transform: translate(-50%, -50%);
+    font-size: 0.1em;
+    font-family: "Inter Bolder", sans-serif;
+    color: var(--text);
+    letter-spacing: 5px;
+    padding: var(--btn-padding);
+}

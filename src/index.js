@@ -141,10 +141,10 @@ const projectType = {
   ART: "3D"
 };
 let iconParameters = [
-  //[projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/KineticRush4.webm", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]],
-  //[projectType.TECHNICAL_ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 2", "Description 2", ["blender", "js"]],
-  //[projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 3", "Description 3", ["aftereffects"]],
-  //[projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"]]
+  [projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/KineticRush4.webm", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]],
+  [projectType.TECHNICAL_ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 2", "Description 2", ["blender", "js"]],
+  [projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 3", "Description 3", ["aftereffects"]],
+  [projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"]]
 ];
 let iconArray = [];
 let iconGroupGroup = new THREE.Group();
@@ -181,7 +181,7 @@ loader.load("LandingPage/Models/AssetsCompressed.glb", (glb) => {
         child.material = new THREE.MeshBasicMaterial({visible: false});
         break;
       case child.name === "Wireframe1":
-        child.material = new THREE.MeshBasicMaterial({color: MAIN_COLOR_NORMALIZED, opacity: 0.03, transparent: true});
+        child.material = new THREE.MeshBasicMaterial({color: MAIN_COLOR_NORMALIZED, opacity: 0.05, transparent: true});
         for (let i = 0; i < 5; ++i) {
           const clone = child.clone();
           primitiveArray.push(clone);
@@ -590,6 +590,7 @@ window.addEventListener("resize", () => {
     scrollCameraTo(0, 0);
   }
 });
+
 function resize() {
   screenSize.width = window.innerWidth;
   screenSize.height = window.innerHeight;
@@ -773,7 +774,7 @@ function zoomCameraTo(scrollZ, duration, boolean) {
 function diveIn() {
   scrollCameraTo(0, 1);
   zoomCameraTo(-0.35, 2, true)
-  //setTimeout(() => window.open("project 1.html", "_self"), 2000);
+  setTimeout(() => location.assign("pjc.html"), 2000);
 }
 
 function randomizePosition(object, minX, maxX, minY, maxY, minZ, maxZ) {
