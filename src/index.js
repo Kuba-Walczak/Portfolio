@@ -15,7 +15,7 @@ const MAIN_COLOR = {
 const MAIN_COLOR_NORMALIZED = new THREE.Color(0x9EDFFF);
 const MAGIC_DIV_OFFSET = 0.96;
 const DEFAULT_FONT_SIZE = 10;
-const ICON_GROUP_SPAWNER_INITIAL_POSITION = new THREE.Vector3(0.15, -0.36, 0);
+const ICON_GROUP_SPAWNER_INITIAL_POSITION = new THREE.Vector3(0.15, 0.36, 0);
 const ICON_GAP_HORIZONTAL = 0.15;
 const ICON_GAP_VERTICAL = ICON_GAP_HORIZONTAL;
 const ICON_SCALE = 1.35;
@@ -103,6 +103,7 @@ const glassMaterial = new THREE.MeshBasicMaterial({
 //SCENE
 //region
 //CREATE SCENE VARIABLES
+let root = new THREE.Group();
 let cube = null;
 let laptopBase = null;
 let laptopHinge = new THREE.Group();
@@ -113,6 +114,9 @@ let laptopScreen = null;
 loader.load("LandingPage/Models/Scene.glb", (glb) => {
   glb.scene.traverse((child) => {
     switch (true) {
+      case child.name === "Root":
+        root = child;
+        break;
       case child.name === "Cube":
         child.material = new THREE.MeshBasicMaterial({map: textureBake});
         cube = child;
@@ -203,7 +207,7 @@ loader.load("LandingPage/Models/AssetsCompressed.glb", (glb) => {
 
   //SETUP ASSETS
   if (!mobileUser) {
-    loadIcons(iconParameters).then(() => {spawnIcons(true)});
+    loadIcons(iconParameters);
   }
 
   primitiveArray.forEach((primitive) => {
@@ -226,9 +230,9 @@ let loadingProgress = 0;
 let finishedLoading = false;
 
 const activeFilters = {
-  PROGRAMMING: true,
-  TECHNICAL_ART: true,
-  ART: true
+  PROGRAMMING: false,
+  TECHNICAL_ART: false,
+  ART: false
 };
 
 const raycaster = new THREE.Raycaster();
@@ -390,8 +394,7 @@ function render() {
   const delta = (now - lastFrameTime) / 1000;
   fps = 1 / delta;
   lastFrameTime = now;
-  /*if (fps.toFixed(1) < 100)
-    console.log(fps.toFixed(1));*/
+  gsap.set(".Debug", {innerHTML: Math.floor(fps) + "<br>" + portfolioButtonHover});
 
   renderer.render(scene, camera);
 
@@ -420,23 +423,26 @@ window.addEventListener("mousedown", (event) => {
     mouseDown = true;
 
     switch (true) {
-      case portfolioButtonHover === document.querySelector(".HomeButtonDiv") && portfolioButtonActive: {
-        gsap.set(".HomeButtonDiv", { backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
-        gsap.to(".HomeButtonDiv", { backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
+      case portfolioButtonHover === document.querySelector(".MainButton"): {
         monitorState(false);
-        gsap.to(".HomeSection", { opacity: 1, duration: 0.5, overwrite: "auto"});
-        gsap.to(".AboutSection", { opacity: 0, duration: 0.5, overwrite: "auto"});
+        let buttonGroup = null;
+        switch (portfolioButtonHover) {
+          case document.querySelector(".Button1"): buttonGroup = ".HomeGroup"; break;
+          case document.querySelector(".Button2"): buttonGroup = ".ProjectsGroup"; break;
+          case document.querySelector(".Button3"): buttonGroup = ".AboutGroup"; break;
+        }
+        [".HomeGroup", ".ProjectsGroup", ".AboutGroup"].forEach((element) => {
+          gsap.to(element, {opacity: element === buttonGroup ? 1 : 0, duration: 0.5, overwrite: "auto"});
+        });
         break;
       }
-      case portfolioButtonHover === document.querySelector(".PortfolioButtonDiv") && portfolioButtonActive: {
-        gsap.set(".PortfolioButtonDiv", {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
-        gsap.to(".PortfolioButtonDiv", {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
-        scrollCameraTo(-MAX_SCROLL, 2);
+      case portfolioButtonHover === document.querySelector(".Button2") && portfolioButtonActive: {
+        monitorState(true);
+        gsap.to(".AboutSection", { opacity: 1, duration: 0.5, overwrite: "auto"});
+        gsap.to(".HomeSection", { opacity: 0, duration: 0.5, overwrite: "auto"});
         break;
       }
-      case portfolioButtonHover === document.querySelector(".AboutButtonDiv") && portfolioButtonActive: {
-        gsap.set(".AboutButtonDiv", { backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
-        gsap.to(".AboutButtonDiv", { backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
+      case portfolioButtonHover === document.querySelector(".Button3") && portfolioButtonActive: {
         monitorState(true);
         gsap.to(".AboutSection", { opacity: 1, duration: 0.5, overwrite: "auto"});
         gsap.to(".HomeSection", { opacity: 0, duration: 0.5, overwrite: "auto"});
@@ -844,15 +850,15 @@ function monitorState(boolean) {
   }
 }
 
-async function loadIcons(iconParameters) {
-  for (const parameters of iconParameters) {
+function loadIcons(iconParameters) {
+  for (const parameters of iconParameters)
     iconArray.push(new Icon(...parameters));
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
 }
 
 function spawnIcons(boolean) {
-  if (!iconGroupGroup.children.length) {
+  let oldSpawnedIconsNumber = iconGroupGroup.children.length;
+  let newSpawnedIconsNumber = 0;
+  if (!oldSpawnedIconsNumber) {
     spawnIconsHelper(boolean);
   }
   else {
@@ -862,7 +868,8 @@ function spawnIcons(boolean) {
       gsap.killTweensOf(child.scale);
       gsap.to(child.scale, {x: 0, y: 0, z: 0, duration: 0.2, overwrite: "auto", onComplete: () => {
           iconGroupGroup.remove(child);
-          spawnIconsHelper();
+          if (++newSpawnedIconsNumber === oldSpawnedIconsNumber)
+            spawnIconsHelper();
         }
       });
     });
@@ -874,8 +881,8 @@ function spawnIcons(boolean) {
 function spawnIconsHelper(boolean) {
   const iconGroupSpawnerCurrentPosition = ICON_GROUP_SPAWNER_INITIAL_POSITION.clone();
   iconArray.forEach((iconGroup) => {
-    Object.keys(projectType).some((type) => {
-      if (activeFilters[type] && iconGroup.type === projectType[type]) {
+    Object.keys(projectType).forEach((type) => {
+      if (iconGroup.type === projectType[type] && (activeFilters[type] || Object.values(activeFilters).every(v => !v))) {
         gsap.killTweensOf(iconGroup.object.position);
         gsap.killTweensOf(iconGroup.object.scale);
         if (!boolean)
@@ -904,6 +911,17 @@ function spawnIconsHelper(boolean) {
     if (filterButtonHover)
       document.body.style.cursor = "pointer";
   }
+}
+
+function deleteIcons() {
+  iconGroupGroup.children.forEach((child) => {
+    gsap.killTweensOf(child.position);
+    gsap.killTweensOf(child.scale);
+    gsap.to(child.scale, {x: 0, y: 0, z: 0, duration: 0.2, overwrite: "auto", onComplete: () => {
+        iconGroupGroup.remove(child);
+      }
+    });
+  });
 }
 
 function updateLoading() {
@@ -1195,7 +1213,7 @@ document.querySelectorAll(".LogoDiv")[1].addEventListener("click", () => {
 
 //BUTTONS HOVER/LEAVE
 //region
-[document.querySelector(".HomeButtonDiv"), document.querySelector(".PortfolioButtonDiv"), document.querySelector(".AboutButtonDiv")].forEach(button => {
+[document.querySelector(".HomeButtonDiv"), document.querySelector(".AboutButtonDiv")].forEach(button => {
   button.addEventListener("mouseenter", () => {
     portfolioButtonHover = button;
     if (portfolioButtonActive && !dragging && !userLock) {
@@ -1232,14 +1250,30 @@ resize();
 //scrollTrigger();
 
 document.querySelector(".Button1").addEventListener("click", () => {
+  gsap.to(root.position, {y: 0, duration: 1, overwrite: "auto"});
   gsap.to(camera.position, {x: -0.35, y: 0.25, z: -1.2, duration: 1, overwrite: "auto"});
   gsap.to(camera.rotation, {y: Math.PI * 210 / 180, duration: 1, overwrite: "auto"});
-  gsap.to(laptopHinge.rotation, {x: 0, duration: 1, overwrite: "auto"});
+  gsap.to(laptopHinge.rotation, {x: Math.PI * 115 / 180, duration: 1, overwrite: "auto"});
+  deleteIcons();
 });
 
 document.querySelector(".Button2").addEventListener("click", () => {
-  gsap.to(camera.position, {x: 0, y: 0.14, z: -0.5, duration: 1, overwrite: "auto"});
+  gsap.to(root.position, {y: 0, duration: 1, overwrite: "auto"});
+  gsap.to(camera.position, {x: 0.15, y: 0.3, z: -1, duration: 1, overwrite: "auto"});
   gsap.to(camera.rotation, {x: 0, duration: 1, overwrite: "auto"});
   gsap.to(camera.rotation, {y: Math.PI, duration: 1, overwrite: "auto"});
-  gsap.to(laptopHinge.rotation, {x: Math.PI / 2, duration: 1, overwrite: "auto"});
+  gsap.to(laptopHinge.rotation, {x: Math.PI * 150 / 180, duration: 1, overwrite: "auto"});
+  spawnIcons();
 });
+
+document.querySelector(".Button3").addEventListener("click", () => {
+  gsap.to(root.position, {y: -0.5, duration: 1, overwrite: "auto"});
+  gsap.to(laptopHinge.rotation, {x: 0, duration: 1, overwrite: "auto"});
+  deleteIcons();
+});
+
+/*
+gsap.to(camera.position, {x: 0, y: 0.14, z: -0.5, duration: 1, overwrite: "auto"});
+gsap.to(camera.rotation, {x: 0, duration: 1, overwrite: "auto"});
+gsap.to(camera.rotation, {y: Math.PI, duration: 1, overwrite: "auto"});
+gsap.to(laptopHinge.rotation, {x: Math.PI / 2, duration: 1, overwrite: "auto"});*/
