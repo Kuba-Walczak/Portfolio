@@ -30,7 +30,11 @@ const screenSize = {
   height: window.innerHeight
 };
 const camera = new THREE.PerspectiveCamera( 35.98339890412515, screenSize.width / screenSize.height, 0.01, 1000);
-camera.position.z = -0.9;
+camera.position.x = -0.35;
+camera.position.y = 0.25;
+camera.position.z = -1.2;
+//camera.rotateY(Math.PI * 210 / 180);
+//camera.rotateX(Math.PI * -5 / 180);
 camera.rotation.y = Math.PI;
 const cameraWrapper = {
   camera: camera,
@@ -80,7 +84,7 @@ loader.setDRACOLoader(dracoLoader);
 //region
 const cubeMap = new THREE.CubeTextureLoader().setPath("https://PortfolioPullZone.b-cdn.net/LandingPage/Textures/").load(["CubeMap.webp", "CubeMap.webp", "CubeMap.webp", "CubeMap.webp", "CubeMap.webp", "CubeMap.webp"]);
 
-const textureBake = textureLoader.load("https://PortfolioPullZone.b-cdn.net/LandingPage/Textures/BakedTexture.webp");
+const textureBake = textureLoader.load("Bake.png");
 textureBake.flipY = false;
 textureBake.colorSpace = THREE.SRGBColorSpace;
 textureBake.minFilter = THREE.LinearFilter;
@@ -102,13 +106,15 @@ const glassMaterial = new THREE.MeshBasicMaterial({
 let monitorCover = null;
 let monitorButton = null;
 let monitorMask = null;
+let monitor = null;
 
 //SPAWN SCENE (static, no raycast)
-loader.load("LandingPage/Models/SceneCompressed.glb", (glb) => {
+loader.load("LandingPage/Models/Scene.glb", (glb) => {
   glb.scene.traverse((child) => {
     switch (true) {
-      case child.name === "Monitor":
+      case child.name === "LaptopBase" || child.name === "LaptopDisplay" || child.name === "Cube":
         child.material = new THREE.MeshBasicMaterial({map: textureBake});
+        monitor = child;
         break;
       case child.name === "MonitorCover":
         child.material = new THREE.MeshBasicMaterial({color: 0x000000, visible: false});
@@ -616,7 +622,7 @@ function resize() {
   canvas.style.height = `${divRect.height}px`;
 
   renderer.setSize(screenSize.width, screenSize.height, true);
-  camera.position.z = -0.9 * (screenSize.height / newHeight);
+  //camera.position.z = -0.9 * (screenSize.height / newHeight);
   camera.aspect = screenSize.width / screenSize.height;
   camera.updateProjectionMatrix();
 }
@@ -918,14 +924,14 @@ function onLoad() {
   videoPlayer1.play();
   videoPlayer2.play();
   iconArray.forEach((child) => {child.video.play()});
-  if (screenSize.width / screenSize.height > 16 / 9) {
+  /*if (screenSize.width / screenSize.height > 16 / 9) {
     zoomCameraTo(-1.2, 0);
     zoomCameraTo(-0.9, 2);
   }
   else {
     zoomCameraTo(-0.9 * (screenSize.height / screenSize.width * 16 / 9) * 1.2, 0);
     zoomCameraTo(-0.9 * (screenSize.height / screenSize.width * 16 / 9), 2);
-  }
+  }*/
   finishedLoading = true;
   setTimeout(() => {
     userLock = false;
@@ -1222,3 +1228,32 @@ document.querySelectorAll(".LogoDiv")[1].addEventListener("click", () => {
 
 resize();
 scrollTrigger();
+
+setTimeout(() => {
+  monitor.rotation.set(THREE.MathUtils.degToRad(30), 0, 0);
+  monitorMask.position.set(1, 1, 1);
+  monitor.updateMatrix();
+  const e = monitor.matrix.elements;
+  const cssMatrix = `translate(-50%, -50%) matrix3d(
+    ${e[0]},  ${e[4]},  ${e[8]},   ${e[12]},
+    ${e[1]},  ${e[5]},  ${-e[9]},   ${e[13]},
+    ${e[2]}, ${-e[6]}, ${e[10]}, ${e[14]},
+    ${e[3]},  ${e[7]},  ${e[11]},  ${e[15]}
+  )`;
+  console.log(cssMatrix);
+  document.querySelector(".MonitorDiv").style.transform = cssMatrix;
+
+// Move the object to position (10, 5, -20)
+  //monitor.position.set(0.1, 0, 0);
+}, 5000)
+
+document.querySelector(".Button1").addEventListener("click", () => {
+  gsap.to(camera.position, {x: -0.35, y: 0.25, z: -1.2, duration: 1, overwrite: "auto"});
+  gsap.to(camera.rotation, {y: Math.PI * 210 / 180, duration: 1, overwrite: "auto"});
+});
+
+document.querySelector(".Button2").addEventListener("click", () => {
+  //gsap.to(camera.position, {x: 0, y: 0.15, z: -0.5, duration: 1, overwrite: "auto"});
+  gsap.to(camera.position, {x: -0.35, y: 0.25, z: -1.2, duration: 1, overwrite: "auto"});
+  gsap.to(camera.rotation, {y: Math.PI, duration: 1, overwrite: "auto"});
+});
