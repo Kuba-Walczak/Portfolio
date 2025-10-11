@@ -30,11 +30,11 @@ const screenSize = {
   height: window.innerHeight
 };
 const camera = new THREE.PerspectiveCamera( 35.98339890412515, screenSize.width / screenSize.height, 0.01, 1000);
-camera.position.x = -0.35;
+camera.rotation.order = 'YXZ';
+camera.position.x = 0;
 camera.position.y = 0.25;
-camera.position.z = -1.2;
-//camera.rotateY(Math.PI * 210 / 180);
-//camera.rotateX(Math.PI * -5 / 180);
+camera.position.z = -1;
+camera.rotation.x = Math.PI * -5 / 180;
 camera.rotation.y = Math.PI;
 const cameraWrapper = {
   camera: camera,
@@ -56,7 +56,7 @@ renderer.setAnimationLoop(render);
 const loaderManager = new THREE.LoadingManager(() => {
   if (!mobileUser) {
     renderer.compile(scene, camera);
-    gsap.set(".LoadingIcon", {opacity: 1, overwrite: "auto"});
+    gsap.set(".LoadingIcon", {opacity: 0, overwrite: "auto"});
     updateLoading();
   }
   else {
@@ -103,31 +103,33 @@ const glassMaterial = new THREE.MeshBasicMaterial({
 //SCENE
 //region
 //CREATE SCENE VARIABLES
-let monitorCover = null;
-let monitorButton = null;
-let monitorMask = null;
-let monitor = null;
+let cube = null;
+let laptopBase = null;
+let laptopHinge = new THREE.Group();
+let laptopDisplay = null;
+let laptopScreen = null;
 
 //SPAWN SCENE (static, no raycast)
 loader.load("LandingPage/Models/Scene.glb", (glb) => {
   glb.scene.traverse((child) => {
     switch (true) {
-      case child.name === "LaptopBase" || child.name === "LaptopDisplay" || child.name === "Cube":
+      case child.name === "Cube":
         child.material = new THREE.MeshBasicMaterial({map: textureBake});
-        monitor = child;
+        cube = child;
         break;
-      case child.name === "MonitorCover":
-        child.material = new THREE.MeshBasicMaterial({color: 0x000000, visible: false});
-        monitorCover = child;
+      case child.name === "LaptopBase":
+        child.material = new THREE.MeshBasicMaterial({map: textureBake});
+        laptopBase = child;
         break;
-      case child.name === "MonitorButton":
-        child.material = new THREE.MeshBasicMaterial({color: MAIN_COLOR_NORMALIZED});
-        monitorButton = child;
-        raycastTargetArray.push(child);
+      case child.name === "LaptopHinge":
+        laptopHinge = child;
         break;
-      case child.name === "MonitorMask":
-        child.material = new THREE.MeshBasicMaterial({colorWrite: false});
-        monitorMask = child;
+      case child.name === "LaptopDisplay":
+        child.material = new THREE.MeshBasicMaterial({map: textureBake});
+        laptopDisplay = child;
+        break;
+      case child.name === "LaptopScreen":
+        laptopScreen = child;
         break;
     }
   });
@@ -398,14 +400,14 @@ function render() {
 //END OF THREE JS SETUP
 //endregion
 
-window.addEventListener("wheel", (event) => {
+/*window.addEventListener("wheel", (event) => {
   if (!userLock)
     if (monitorDivHover && monitorPowered && monitorActive) {
       scrollMonitorBy(event.deltaY * 0.2, 0.5, true)
     }
     else
       scrollCameraBy(event.deltaY * 0.0009, 0.5);
-});
+});*/
 
 window.addEventListener("mousemove", (event) => {
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -593,7 +595,7 @@ window.addEventListener("resize", () => {
     location.reload();
   else {
     resize();
-    scrollCameraTo(0, 0);
+    //scrollCameraTo(0, 0);
   }
 });
 
@@ -633,7 +635,7 @@ function getMouseWorldPosition() {
   return lookIntersection.clone();
 }
 
-function scrollTrigger() {
+/*function scrollTrigger() {
 
   const cameraPositionNormalized = Math.min(1, Math.max(0, -camera.position.y / MAX_SCROLL));
 
@@ -716,9 +718,9 @@ function scrollTrigger() {
     document.body.style.cursor = "default";
     gsap.to(filterButtonHover, {backgroundColor: "rgba(255, 255, 255, 0.05)", ease: "back", duration: 0.2, overwrite: "auto"});
   }
-}
+}*/
 
-function scrollCameraBy(deltaY, duration) {
+/*function scrollCameraBy(deltaY, duration) {
   cameraWrapper.centeredDiv.style.willChange = "transform";
   const afterScroll = cameraWrapper.camera.position.y - deltaY;
   if (afterScroll >= 0) {
@@ -733,15 +735,15 @@ function scrollCameraBy(deltaY, duration) {
     gsap.to(cameraWrapper.camera.position, {y: `-=${deltaY}`, duration: duration, overwrite: true, onUpdate: scrollTrigger});
     gsap.to(cameraWrapper.centeredDiv, {y: `-=${deltaY * divPositionMultiplier * gsap.getProperty(cameraWrapper.centeredDiv, "scale")}`, duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredDiv.style.willChange = "auto"}});
   }
-}
+}*/
 
-function scrollCameraTo(Y, duration) {
+/*function scrollCameraTo(Y, duration) {
   cameraWrapper.centeredDiv.style.willChange = "transform";
   gsap.to(cameraWrapper.camera.position, {y: Y, duration: duration, overwrite: "auto", onUpdate: scrollTrigger});
   gsap.to(cameraWrapper.centeredDiv, {y: Y * divPositionMultiplier, duration: duration, overwrite: "auto", onComplete: () => {cameraWrapper.centeredDiv.style.willChange = "auto"}});
-}
+}*/
 
-function scrollMonitorBy(deltaY, duration, boolean) {
+/*function scrollMonitorBy(deltaY, duration, boolean) {
   if (boolean && deltaY > 0) {
     scrollingDiscovered = true;
     clearInterval(scrollShowInterval);
@@ -761,7 +763,7 @@ function scrollMonitorBy(deltaY, duration, boolean) {
     gsap.to(cameraWrapper.scrollDiv, {top: `-=${deltaY}%`, duration: duration, overwrite: "auto", onComplete: () => {cameraWrapper.scrollDiv.style.willChange = "auto"}});
     gsap.to(cameraWrapper.faceForegroundImage, {top: `-=${deltaY / 4}%`, width: `+=${deltaY / 20}%`, duration: duration, overwrite: "auto"});
   }
-}
+}*/
 
 let s = 1;
 let lastScale = 1;
@@ -1227,33 +1229,17 @@ document.querySelectorAll(".LogoDiv")[1].addEventListener("click", () => {
 //endregion
 
 resize();
-scrollTrigger();
-
-setTimeout(() => {
-  monitor.rotation.set(THREE.MathUtils.degToRad(30), 0, 0);
-  monitorMask.position.set(1, 1, 1);
-  monitor.updateMatrix();
-  const e = monitor.matrix.elements;
-  const cssMatrix = `translate(-50%, -50%) matrix3d(
-    ${e[0]},  ${e[4]},  ${e[8]},   ${e[12]},
-    ${e[1]},  ${e[5]},  ${-e[9]},   ${e[13]},
-    ${e[2]}, ${-e[6]}, ${e[10]}, ${e[14]},
-    ${e[3]},  ${e[7]},  ${e[11]},  ${e[15]}
-  )`;
-  console.log(cssMatrix);
-  document.querySelector(".MonitorDiv").style.transform = cssMatrix;
-
-// Move the object to position (10, 5, -20)
-  //monitor.position.set(0.1, 0, 0);
-}, 5000)
+//scrollTrigger();
 
 document.querySelector(".Button1").addEventListener("click", () => {
   gsap.to(camera.position, {x: -0.35, y: 0.25, z: -1.2, duration: 1, overwrite: "auto"});
   gsap.to(camera.rotation, {y: Math.PI * 210 / 180, duration: 1, overwrite: "auto"});
+  gsap.to(laptopHinge.rotation, {x: 0, duration: 1, overwrite: "auto"});
 });
 
 document.querySelector(".Button2").addEventListener("click", () => {
-  //gsap.to(camera.position, {x: 0, y: 0.15, z: -0.5, duration: 1, overwrite: "auto"});
-  gsap.to(camera.position, {x: -0.35, y: 0.25, z: -1.2, duration: 1, overwrite: "auto"});
+  gsap.to(camera.position, {x: 0, y: 0.14, z: -0.5, duration: 1, overwrite: "auto"});
+  gsap.to(camera.rotation, {x: 0, duration: 1, overwrite: "auto"});
   gsap.to(camera.rotation, {y: Math.PI, duration: 1, overwrite: "auto"});
+  gsap.to(laptopHinge.rotation, {x: Math.PI / 2, duration: 1, overwrite: "auto"});
 });
