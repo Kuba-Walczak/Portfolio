@@ -477,12 +477,10 @@ canvas.BackgroundCanvas2 {
 }
 .TitleFrameDiv {
     position: absolute;
-    height: 15%;
-    width: 65%;
-    top: 2%;
-    left: 50%;
+    height: 50%;
+    width: 50%;
+    transform: translate(-50%, -50%);
     background: linear-gradient(rgba(var(--main-color-rgb), 0.1), rgba(var(--secondary-color-rgb), 0.3));
-    transform: translate(-50%, 0);
     border-radius: 200px;
     backdrop-filter: blur(10px) saturate(120%);
     box-shadow:
@@ -1011,37 +1009,17 @@ p.FilterButtonText {
     font-size: 17.5%;
 }
 
-section.HomeSection {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-}
 video.VideoPlayer1 {
     position: absolute;
     object-fit: cover;
-    width: 100%;
-    height: 100%;
-    opacity: 0.5;
-    filter: blur(15vh) saturate(1000%);
-    z-index: -1;
-}
-div.VideoSeparatorDiv {
-    position: absolute;
-    object-fit: cover;
-    width: 100%;
-    height: 100%;
-    background:
-        radial-gradient(circle at 0% 0%, rgba(var(--monitor-color-rgb), 1), transparent),
-        radial-gradient(circle at 100% 100%, rgba(var(--monitor-color-rgb), 1), transparent), rgba(var(--main-color-rgb), 1);
-}
-video.VideoPlayer2 {
-    position: absolute;
-    object-fit: cover;
-    background: black;
-    width: 100%;
-    height: 100%;
-    opacity: 0.5;
-    z-index: 1;
+    width: 40%;
+    height: 40%;
+    top: 55%;
+    left: 75%;
+    transform: translate(-50%, -50%);
+    opacity: 1;
+    filter: blur(15vh) saturate(500%);
+    z-index: 10;
 }
 
 section.SlotSection {
