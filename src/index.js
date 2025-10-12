@@ -4,7 +4,24 @@ import {DRACOLoader} from "three/examples/jsm/loaders/DRACOLoader.js";
 import {gsap} from "gsap";
 import html2canvas from "html2canvas";
 
+const projectType = {
+  PROGRAMMING: "programming",
+  TECHNICAL_ART: "technicalArt",
+  ART: "3D"
+};
+let iconParameters = [
+  [projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/KineticRush4.webm", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]],
+  [projectType.TECHNICAL_ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 2", "Description 2", ["blender", "js"]],
+  [projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 3", "Description 3", ["aftereffects"]],
+  [projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"]]
+];
+
 //CONSTANTS
+//region
+//VERY IMPORTANT
+const BAKE_ICON_OVERLAY = false;
+printDebug(BAKE_ICON_OVERLAY ? "Baking textures..." : "Skipped baking textures!");
+
 //const mobileUser = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 const mobileUser = false;
 const MAIN_COLOR = {
@@ -20,7 +37,7 @@ const ICON_GAP_HORIZONTAL = 0.15;
 const ICON_GAP_VERTICAL = ICON_GAP_HORIZONTAL;
 const ICON_SCALE = 1.35;
 const ICON_ROTATION = 0;
-const MAX_SCROLL = 0.45;
+//endregion
 
 //THREE JS SETUP
 //region
@@ -57,7 +74,8 @@ const loaderManager = new THREE.LoadingManager(() => {
   if (!mobileUser) {
     renderer.compile(scene, camera);
     gsap.set(".LoadingIcon", {opacity: 0, overwrite: "auto"});
-    updateLoading();
+    onLoad();
+    printDebug("Finished loading");
   }
   else {
     gsap.set(".MobileDiv", {opacity: 1, overwrite: "auto"});
@@ -84,11 +102,20 @@ loader.setDRACOLoader(dracoLoader);
 //region
 const cubeMap = new THREE.CubeTextureLoader().setPath("https://PortfolioPullZone.b-cdn.net/LandingPage/Textures/").load(["CubeMap.webp", "CubeMap.webp", "CubeMap.webp", "CubeMap.webp", "CubeMap.webp", "CubeMap.webp"]);
 
-const textureBake = textureLoader.load("Bake.png");
-textureBake.flipY = false;
-textureBake.colorSpace = THREE.SRGBColorSpace;
-textureBake.minFilter = THREE.LinearFilter;
-textureBake.magFilter = THREE.LinearFilter;
+const textureBake = textureLoader.load("Bake.png", (textureBake) => {
+  textureBake.flipY = false;
+  textureBake.colorSpace = THREE.SRGBColorSpace;
+  textureBake.minFilter = THREE.LinearFilter;
+  textureBake.magFilter = THREE.LinearFilter;
+});
+for (const parameters of iconParameters) {
+  parameters.push(textureLoader.load(`LandingPage/Textures/${parameters[2]}.png`, (texture) => {
+    texture.flipY = false;
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+  }));
+}
 
 const glassMaterial = new THREE.MeshBasicMaterial({
   color: 0xffffff,
@@ -147,17 +174,6 @@ loader.load("LandingPage/Models/Scene.glb", (glb) => {
 let iconComponentGroup = new THREE.Group();
 let raycastTargetArray = [];
 let primitiveArray = [];
-const projectType = {
-  PROGRAMMING: "programming",
-  TECHNICAL_ART: "technicalArt",
-  ART: "3D"
-};
-let iconParameters = [
-  [projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/KineticRush4.webm", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]],
-  [projectType.TECHNICAL_ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 2", "Description 2", ["blender", "js"]],
-  [projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 3", "Description 3", ["aftereffects"]],
-  [projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"]]
-];
 let iconArray = [];
 let iconGroupGroup = new THREE.Group();
 const h2cTags = {
@@ -207,7 +223,7 @@ loader.load("LandingPage/Models/AssetsCompressed.glb", (glb) => {
 
   //SETUP ASSETS
   if (!mobileUser) {
-    loadIcons(iconParameters);
+    loadIcons(iconParameters).then(() => {spawnIcons(true); removeIcons();});
   }
 
   primitiveArray.forEach((primitive) => {
@@ -226,7 +242,6 @@ loader.load("LandingPage/Models/AssetsCompressed.glb", (glb) => {
 let lastFrameTime = performance.now();
 let fps = null;
 
-let loadingProgress = 0;
 let finishedLoading = false;
 
 const activeFilters = {
@@ -251,10 +266,9 @@ let animationLock = null;
 
 let divPositionMultiplier = null;
 
-let portfolioButtonHover = false;
+let DOMHover = null;
 let portfolioButtonActive = true;
 
-let filterButtonHover = false;
 let filterButtonsActive = false;
 
 let monitorPowered = true;
@@ -270,11 +284,6 @@ const backgroundCanvas2 = document.querySelector(".BackgroundCanvas2");
   canvas.width = 1000;
   canvas.height = 2560;
 });
-let click = {
-  target: null,
-  time: performance.now()
-};
-let lastClick = null;
 //endregion
 
 function render() {
@@ -305,34 +314,15 @@ function render() {
       document.body.style.cursor = "default";
       raycastResult = null;
     }
-    if (dragging) {
-      raycaster.ray.intersectPlane(plane, intersection);
-      const target = intersection.clone().sub(offset);
-      gsap.to(dragging.position, {x: target.x, y: target.y, duration: 0.3});
-      switch (true) {
-        case dragging.name === "IconGroup":
-          if (dragging.position.distanceTo(monitorCover.position) < 0.25 && monitorPowered) {
-            gsap.killTweensOf(dragging.scale);
-            gsap.to(dragging.scale, {x: ICON_SCALE / 2, y: ICON_SCALE / 2, z: 1, duration: 0.1});
-            gsap.to(dragging.rotation, {x: -ICON_ROTATION, y: 0, z: 0, duration: 1});
-          }
-          else {
-            gsap.killTweensOf(dragging.scale);
-            gsap.to(dragging.scale, {x: ICON_SCALE, y: ICON_SCALE, z: 1, duration: 0.1});
-          }
-          break;
-      }
-    }
-
-    else if (raycastResult !== previousRaycastResult && !mouseDown) {
+    if (raycastResult !== previousRaycastResult && !mouseDown) {
 
       if (previousRaycastResult) {
         switch (true) {
-          case previousRaycastResult.parent.name === "IconGroup" && previousRaycastResult.parent !== animationLock:
+          case previousRaycastResult.name === "IconHitbox" && previousRaycastResult !== animationLock:
             const iconGroup = previousRaycastResult.parent;
             const tempTl = iconGroup.userData.tl;
             if (tempTl && tempTl.time() >= tempTl.labels["selected"])
-              animationLock = iconGroup;
+              animationLock = previousRaycastResult;
             if (iconGroup.userData.tl && iconGroup.userData.tl.isActive()) {
               iconGroup.userData.tl.kill();
             }
@@ -357,7 +347,7 @@ function render() {
 
       if (raycastResult) {
         switch (true) {
-          case raycastResult.parent.name === "IconGroup" && raycastResult.parent === animationLock:
+          case raycastResult.name === "IconHitbox" && raycastResult === animationLock:
             document.body.style.cursor = "grab";
             break;
           case raycastResult.parent.name === "IconGroup" && raycastResult.parent !== animationLock:
@@ -367,7 +357,7 @@ function render() {
               iconGroup.userData.tl.kill();
             const tl = gsap.timeline();
             iconGroup.userData.tl = tl;
-            tl.to(iconGroup.userData.iconHover.material, {opacity: 1, duration: 0.75, overwrite: "auto"}).addLabel("selected").call(() => {
+            tl.to(iconGroup.userData.iconHover.material, {opacity: 1, duration: 0.25, overwrite: "auto"}).addLabel("selected").call(() => {
             })
             .to(iconGroup.position, {z: -0.15, duration: 0.5, overwrite: "auto"}, ">")
             .to(iconGroup.userData.iconScreen.material, {opacity: 1, duration: 1, overwrite: "auto"}, "<")
@@ -394,7 +384,12 @@ function render() {
   const delta = (now - lastFrameTime) / 1000;
   fps = 1 / delta;
   lastFrameTime = now;
-  gsap.set(".Debug", {innerHTML: Math.floor(fps) + "<br>" + portfolioButtonHover});
+  gsap.set(".Debug1", {innerHTML: `fps ${Math.floor(fps)}` +
+  `<br>DOMHover ${DOMHover ? DOMHover.className : DOMHover}` +
+  `<br>raycastResult ${raycastResult ? `${raycastResult.name} ${raycastResult.id}` : raycastResult}` +
+  `<br>previousRaycastResult ${previousRaycastResult ? `${previousRaycastResult.name} ${previousRaycastResult.id}` : previousRaycastResult}` +
+  `<br>animationLock ${animationLock ? `${animationLock.name} ${animationLock.id}` : animationLock}` +
+  `<br>userLock ${userLock}`});
 
   renderer.render(scene, camera);
 
@@ -423,32 +418,43 @@ window.addEventListener("mousedown", (event) => {
     mouseDown = true;
 
     switch (true) {
-      case portfolioButtonHover === document.querySelector(".MainButton"): {
+      case DOMHover === document.querySelector(".MainButton"): {
         monitorState(false);
         let buttonGroup = null;
-        switch (portfolioButtonHover) {
-          case document.querySelector(".Button1"): buttonGroup = ".HomeGroup"; break;
-          case document.querySelector(".Button2"): buttonGroup = ".ProjectsGroup"; break;
-          case document.querySelector(".Button3"): buttonGroup = ".AboutGroup"; break;
+        switch (DOMHover) {
+          case document.querySelector(".Button1"):{
+            buttonGroup = ".HomeGroup";
+            gsap.to(root.position, {y: 0, duration: 1, overwrite: "auto"});
+            gsap.to(camera.position, {x: -0.35, y: 0.25, z: -1.2, duration: 1, overwrite: "auto"});
+            gsap.to(camera.rotation, {y: Math.PI * 210 / 180, duration: 1, overwrite: "auto"});
+            gsap.to(laptopHinge.rotation, {x: Math.PI * 115 / 180, duration: 1, overwrite: "auto"});
+            removeIcons();
+            break
+          }
+          case document.querySelector(".Button2"):{
+            buttonGroup = ".ProjectsGroup";
+            gsap.to(root.position, {y: 0, duration: 1, overwrite: "auto"});
+            gsap.to(camera.position, {x: 0.15, y: 0.3, z: -1, duration: 1, overwrite: "auto"});
+            gsap.to(camera.rotation, {x: 0, duration: 1, overwrite: "auto"});
+            gsap.to(camera.rotation, {y: Math.PI, duration: 1, overwrite: "auto"});
+            gsap.to(laptopHinge.rotation, {x: Math.PI * 150 / 180, duration: 1, overwrite: "auto"});
+            spawnIcons();
+            break;
+          }
+          case document.querySelector(".Button3"):{
+            buttonGroup = ".AboutGroup";
+            gsap.to(root.position, {y: -0.5, duration: 1, overwrite: "auto"});
+            gsap.to(laptopHinge.rotation, {x: 0, duration: 1, overwrite: "auto"});
+            removeIcons();
+            break;
+          }
         }
         [".HomeGroup", ".ProjectsGroup", ".AboutGroup"].forEach((element) => {
           gsap.to(element, {opacity: element === buttonGroup ? 1 : 0, duration: 0.5, overwrite: "auto"});
         });
         break;
       }
-      case portfolioButtonHover === document.querySelector(".Button2") && portfolioButtonActive: {
-        monitorState(true);
-        gsap.to(".AboutSection", { opacity: 1, duration: 0.5, overwrite: "auto"});
-        gsap.to(".HomeSection", { opacity: 0, duration: 0.5, overwrite: "auto"});
-        break;
-      }
-      case portfolioButtonHover === document.querySelector(".Button3") && portfolioButtonActive: {
-        monitorState(true);
-        gsap.to(".AboutSection", { opacity: 1, duration: 0.5, overwrite: "auto"});
-        gsap.to(".HomeSection", { opacity: 0, duration: 0.5, overwrite: "auto"});
-        break;
-      }
-      case filterButtonHover === document.querySelector(".Filter1Div") && filterButtonsActive: {
+      case DOMHover === document.querySelector(".Filter1Div") && filterButtonsActive: {
         gsap.set(".Filter1Div", {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
         gsap.to(".Filter1Div", {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
         if (activeFilters.PROGRAMMING) {
@@ -462,7 +468,7 @@ window.addEventListener("mousedown", (event) => {
         spawnIcons();
         break;
       }
-      case filterButtonHover === document.querySelector(".Filter2Div") && filterButtonsActive: {
+      case DOMHover === document.querySelector(".Filter2Div") && filterButtonsActive: {
         gsap.set(".Filter2Div", {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
         gsap.to(".Filter2Div", {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
         if (activeFilters.TECHNICAL_ART) {
@@ -476,7 +482,7 @@ window.addEventListener("mousedown", (event) => {
         spawnIcons();
         break;
       }
-      case filterButtonHover === document.querySelector(".Filter3Div") && filterButtonsActive: {
+      case DOMHover === document.querySelector(".Filter3Div") && filterButtonsActive: {
         gsap.set(".Filter3Div", {backgroundColor: "rgba(255, 255, 255, 0.15)", overwrite: "auto"});
         gsap.to(".Filter3Div", {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.5, overwrite: "auto"});
         if (activeFilters.ART) {
@@ -496,35 +502,26 @@ window.addEventListener("mousedown", (event) => {
       switch (true) {
         case raycastResult.parent.name === "IconGroup":
           const iconGroup = raycastResult.parent;
-          click.target = iconGroup;
-          click.time = performance.now();
-          document.body.style.cursor = "grabbing";
           if (iconGroup.userData.tl && iconGroup.userData.tl.isActive()) {
             iconGroup.userData.tl.kill();
           }
-          if (lastClick && lastClick.target === click.target && (click.time - lastClick.time) < 1000 && monitorPowered) {
-            document.body.style.cursor = "default";
-            userLock = true;
-            animationLock = iconGroup;
-            const tl = gsap.timeline();
-            const slotDiv = document.querySelector(".Slot2Div");
-            gsap.to(iconGroup.position, {x: 0, y: 0, z: -0.1, duration: 1, overwrite: "auto"});
-            tl.to(iconGroup.scale, {x: 0, y: 0, z: 0, duration: 1, overwrite: "auto"}).to(slotDiv, {"--radius": "150%", duration: 1.5, overwrite: "auto"});
-            diveIn();
-          }
-          else {
-            const tl = gsap.timeline();
-            iconGroup.userData.tl = tl;
-            tl.to(iconGroup.scale, {x: ICON_SCALE / 1.5, y: ICON_SCALE / 1.5, z: 1, duration: 0.5, overwrite: "auto"})
-              .to(iconGroup.position, {z: -0.15, duration: 0.5, overwrite: true}, "<")
-              .to(iconGroup.userData.iconHover.material, {opacity: 0, duration: 1, overwrite: "auto"}, "<")
-              .to(iconGroup.userData.iconOverlay.material, {opacity: 1, duration: 1, overwrite: "auto"}, "<")
-              .to(iconGroup.userData.iconScreen.material.map.repeat, {x: iconGroup.userData.screenTextureRepeatX, y: 1, duration: 0.5, overwrite: "auto"}, "<")
-              .to(iconGroup.userData.iconScreen.material.map.offset, {x: iconGroup.userData.screenTextureOffsetX, y: 0, duration: 0.5, overwrite: "auto"}, "<")
-              .to(iconGroup.userData.iconScreen.material, {opacity: 0.5, duration: 1, overwrite: "auto"}, "<").call(() => {
-              animationLock = null;
-            }, null, ">");
-          }
+          const tl = gsap.timeline();
+          iconGroup.userData.tl = tl;
+          tl.to(iconGroup.scale, {x: ICON_SCALE / 1.5, y: ICON_SCALE / 1.5, z: 1, duration: 0.5, overwrite: "auto"})
+            .to(iconGroup.position, {z: -0.15, duration: 0.5, overwrite: true}, "<")
+            .to(iconGroup.userData.iconHover.material, {opacity: 0, duration: 1, overwrite: "auto"}, "<")
+            .to(iconGroup.userData.iconOverlay.material, {opacity: 1, duration: 1, overwrite: "auto"}, "<")
+            .to(iconGroup.userData.iconScreen.material.map.repeat, {x: iconGroup.userData.screenTextureRepeatX, y: 1, duration: 0.5, overwrite: "auto"}, "<")
+            .to(iconGroup.userData.iconScreen.material.map.offset, {x: iconGroup.userData.screenTextureOffsetX, y: 0, duration: 0.5, overwrite: "auto"}, "<")
+            .to(iconGroup.userData.iconScreen.material, {opacity: 0.5, duration: 1, overwrite: "auto"}, "<").call(() => {
+            animationLock = null;
+          }, null, ">");
+          document.body.style.cursor = "default";
+          userLock = true;
+          gsap.to(iconGroup.position, {x: 0, y: 0, z: 0, duration: 0.5, overwrite: "auto"});
+          gsap.to(iconGroup.scale, {x: 0, y: 0, z: 0, duration: 0.5, overwrite: "auto"});
+          diveIn();
+
           if (monitorPowered) {
             const homeSection = document.querySelector(".HomeSection");
             const aboutSection = document.querySelector(".AboutSection");
@@ -532,15 +529,12 @@ window.addEventListener("mousedown", (event) => {
             gsap.to(homeSection, {opacity: 0, duration: 1});
             gsap.to(aboutSection, {opacity: 0, duration: 1});
             gsap.to(slotSection, {opacity: 1, duration: 1});
-            if (!userLock)
-              scrollCameraTo(0, 3);
           }
           else {
             const color2 = new THREE.Color(0xff0000);
             gsap.to(monitorButton.material.color, {r: color2.r, g: color2.g, b: color2.b, duration: 0.2, overwrite: "auto"});
           }
           dragging = iconGroup;
-          lastClick = {target: click.target, time: click.time};
           break;
         case raycastResult.name === "MonitorButton":
           monitorToggle();
@@ -560,37 +554,6 @@ window.addEventListener("mouseup", () => {
   if (dragging && !userLock) {
     switch (true) {
       case dragging.name === "IconGroup":
-        if (dragging.position.distanceTo(monitorCover.position) < 0.25 && monitorPowered) {
-          document.body.style.cursor = "default";
-          userLock = true;
-          animationLock = dragging;
-          const tl = gsap.timeline();
-          const slotDiv = document.querySelector(".Slot2Div");
-          gsap.to(dragging.position, {x: 0, y: 0, z: 0, duration: 0.5, overwrite: "auto"});
-          tl.to(dragging.scale, {x: 0, y: 0, z: 0, duration: 0.5, overwrite: "auto"}).to(slotDiv, {"--radius": "150%", duration: 1.5, overwrite: "auto"});
-          diveIn();
-        }
-        else {
-          document.body.style.cursor = "grab";
-          const tl = gsap.timeline();
-          tl.to(dragging.position, {x: dragging.userData.originalPosition.x, y: dragging.userData.originalPosition.y, duration: 0.5, ease: "back", overwrite: "auto"})
-            .to(dragging.position, {z: dragging.userData.originalPosition.z, duration: 0.5, overwrite: "auto"});
-          gsap.to(dragging.rotation, {x: 0, y: 0, z: 0, duration: 0.5, overwrite: "auto"});
-          if (monitorPowered) {
-            const homeSection = document.querySelector(".HomeSection");
-            const aboutSection = document.querySelector(".AboutSection");
-            const slotSection = document.querySelector(".SlotSection");
-            if (monitorActive)
-              gsap.to(aboutSection, {opacity: 1, duration: 1});
-            else
-              gsap.to(homeSection, {opacity: 1, duration: 1});
-            gsap.to(slotSection, {opacity: 0, duration: 1});
-            scrollCameraTo(-MAX_SCROLL, 3);
-          }
-          else {
-            gsap.to(monitorButton.material.color, {r: 0, g: 0, b: 0, duration: 1, overwrite: "auto"});
-          }
-        }
         break;
     }
     dragging = null;
@@ -786,7 +749,6 @@ function zoomCameraTo(scrollZ, duration, boolean) {
 }
 
 function diveIn() {
-  scrollCameraTo(0, 1);
   zoomCameraTo(-0.35, 2, true)
   setTimeout(() => location.assign("pjc.html"), 2000);
 }
@@ -850,9 +812,11 @@ function monitorState(boolean) {
   }
 }
 
-function loadIcons(iconParameters) {
-  for (const parameters of iconParameters)
+async function loadIcons(iconParameters) {
+  for (const parameters of iconParameters) {
     iconArray.push(new Icon(...parameters));
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
 }
 
 function spawnIcons(boolean) {
@@ -868,7 +832,7 @@ function spawnIcons(boolean) {
       gsap.killTweensOf(child.scale);
       gsap.to(child.scale, {x: 0, y: 0, z: 0, duration: 0.2, overwrite: "auto", onComplete: () => {
           iconGroupGroup.remove(child);
-          if (++newSpawnedIconsNumber === oldSpawnedIconsNumber)
+          if (++newSpawnedIconsNumber === oldSpawnedIconsNumber){}
             spawnIconsHelper();
         }
       });
@@ -887,9 +851,9 @@ function spawnIconsHelper(boolean) {
         gsap.killTweensOf(iconGroup.object.scale);
         if (!boolean)
           filterButtonsActive = true;
-        if (filterButtonHover) {
+        if (DOMHover) {
           document.body.style.cursor = "pointer";
-          gsap.to(filterButtonHover, {backgroundColor: "rgba(255, 255, 255, 0.1)", ease: "back", duration: 0.2});
+          gsap.to(DOMHover, {backgroundColor: "rgba(255, 255, 255, 0.1)", ease: "back", duration: 0.2});
         }
         if (iconGroupSpawnerCurrentPosition.x <= ICON_GROUP_SPAWNER_INITIAL_POSITION.x - (ICON_GAP_HORIZONTAL * 3)) {
           iconGroupSpawnerCurrentPosition.y -= ICON_GAP_VERTICAL - 0.001;
@@ -908,12 +872,12 @@ function spawnIconsHelper(boolean) {
   if (!iconGroupGroup.children.length) {
     if (!boolean)
       filterButtonsActive = true;
-    if (filterButtonHover)
+    if (DOMHover)
       document.body.style.cursor = "pointer";
   }
 }
 
-function deleteIcons() {
+function removeIcons() {
   iconGroupGroup.children.forEach((child) => {
     gsap.killTweensOf(child.position);
     gsap.killTweensOf(child.scale);
@@ -922,17 +886,6 @@ function deleteIcons() {
       }
     });
   });
-}
-
-function updateLoading() {
-  const isLoaded = iconParameters.length;
-  if (++loadingProgress === isLoaded || !iconParameters.length) {
-    gsap.to(".LoadingIcon", {opacity: 0, duration: 0.5, overwrite: "auto"});
-    setTimeout(() => {onLoad()}, 500);
-  }
-  else {
-    gsap.set(".LoadingIcon", {"--progress": `+=${loadingProgress / isLoaded * 75}%`, overwrite: "auto"});
-  }
 }
 
 function onLoad() {
@@ -958,8 +911,13 @@ function onLoad() {
     gsap.set(".LoadingDiv", {pointerEvents: "none", overwrite: "auto"})}, 2000);
 }
 
+function printDebug(log) {
+  const div = document.querySelector(".Debug2");
+  gsap.set(div, {innerHTML: `${div.innerHTML}<br>${log}`});
+}
+
 class Icon {
-  constructor(type, videoPath, title, description, tags = []) {
+  constructor(type, videoPath, title, description, tags = [], bakedOverlayTexture) {
     this.type = type;
     this.originalPosition = new THREE.Vector3();
     this.object = iconComponentGroup.clone();
@@ -999,6 +957,7 @@ class Icon {
       this.iconScreen.material.map.offset.set(this.screenTextureOffsetX, 0);
     });
 
+
     //ICON GLOW
     const h2cGlowDiv = document.querySelector(".h2cGlowDiv");
     html2canvas(h2cGlowDiv, {scale: 1, backgroundColor: null, useCORS: true, ignoreElements: (element) => element.tagName === "VIDEO", width: h2cGlowDiv.offsetWidth, height: h2cGlowDiv.offsetHeight}).then((glowCanvas) => {
@@ -1021,105 +980,117 @@ class Icon {
 
     });
 
-    //ICON OVERLAY
-    const h2cFilterDiv = document.querySelector(".h2cFilterDiv");
-    switch (type) {
-      case projectType.PROGRAMMING: h2cFilterDiv.style.backgroundColor = "lightgreen"; break;
-      case projectType.TECHNICAL_ART: h2cFilterDiv.style.backgroundColor = "#ffff69"; break;
-      case projectType.ART: h2cFilterDiv.style.backgroundColor = "lightcoral"; break;
-    }
-    const h2cTitleDiv = document.querySelector(".h2cTitle");
-    h2cTitleDiv.textContent = title;
-    const h2cDescriptionDiv = document.querySelector(".h2cDescription");
-    h2cDescriptionDiv.textContent = description;
-    Object.values(h2cTags).forEach((tag) => {tag.style.opacity = 0});
-    let currentTagPosition = [50, 50];
-    function placeTag(tag) {
-      tag.style.opacity = 1;
-      if (currentTagPosition[0] + tag.getBoundingClientRect().width + 15 > 900) {
-        currentTagPosition[0] = 50;
-        currentTagPosition[1] += tag.getBoundingClientRect().height + 15
+    if (BAKE_ICON_OVERLAY) {
+      //ICON OVERLAY
+      const h2cFilterDiv = document.querySelector(".h2cFilterDiv");
+      switch (type) {
+        case projectType.PROGRAMMING: h2cFilterDiv.style.backgroundColor = "lightgreen"; break;
+        case projectType.TECHNICAL_ART: h2cFilterDiv.style.backgroundColor = "#ffff69"; break;
+        case projectType.ART: h2cFilterDiv.style.backgroundColor = "lightcoral"; break;
       }
-      tag.style.left = currentTagPosition[0] + "px";
-      tag.style.top = currentTagPosition[1] + "px";
-      currentTagPosition[0] += tag.getBoundingClientRect().width + 15
+      const h2cTitleDiv = document.querySelector(".h2cTitle");
+      h2cTitleDiv.textContent = title;
+      const h2cDescriptionDiv = document.querySelector(".h2cDescription");
+      h2cDescriptionDiv.textContent = description;
+      Object.values(h2cTags).forEach((tag) => {tag.style.opacity = 0});
+      let currentTagPosition = [50, 50];
+      function placeTag(tag) {
+        tag.style.opacity = 1;
+        if (currentTagPosition[0] + tag.getBoundingClientRect().width + 15 > 900) {
+          currentTagPosition[0] = 50;
+          currentTagPosition[1] += tag.getBoundingClientRect().height + 15
+        }
+        tag.style.left = currentTagPosition[0] + "px";
+        tag.style.top = currentTagPosition[1] + "px";
+        currentTagPosition[0] += tag.getBoundingClientRect().width + 15
+      }
+      tags.forEach((tag) => {
+        if (tag in h2cTags)
+          placeTag(h2cTags[tag]);
+      });
+
+      const h2cBackgroundDiv = document.querySelector(".h2cBackgroundDiv");
+      const h2cTextDiv = document.querySelector(".h2cTextDiv");
+      const h2cForegroundDiv = document.querySelector(".h2cForegroundDiv");
+      const h2cBorderDiv = document.querySelector(".h2cBorderDiv");
+      Promise.all([
+        html2canvas(h2cBackgroundDiv, {scale: 1, backgroundColor: null, useCORS: true, ignoreElements: (element) => element.tagName === "VIDEO", width: h2cBackgroundDiv.offsetWidth, height: h2cBackgroundDiv.offsetHeight}),
+        html2canvas(h2cTextDiv, {scale: 1, backgroundColor: null, useCORS: true, ignoreElements: (element) => element.tagName === "VIDEO", width: h2cTextDiv.offsetWidth, height: h2cTextDiv.offsetHeight}),
+        html2canvas(h2cForegroundDiv, {scale: 1, backgroundColor: null, useCORS: true, ignoreElements: (element) => element.tagName === "VIDEO", width: h2cForegroundDiv.offsetWidth, height: h2cForegroundDiv.offsetHeight}),
+        html2canvas(h2cBorderDiv, {scale: 1, backgroundColor: null, useCORS: true, ignoreElements: (element) => element.tagName === "VIDEO", width: h2cBorderDiv.offsetWidth, height: h2cBorderDiv.offsetHeight})
+      ]).then(([backgroundCanvas, textCanvas, foregroundCanvas, borderCanvas]) => {
+
+        let textCompCanvas = document.createElement("canvas");
+        textCompCanvas.width = 1000;
+        textCompCanvas.height = 1000;
+
+        textCompCanvas.getContext("2d").filter = "blur(3px)";
+        textCompCanvas.getContext("2d").drawImage(textCanvas, 0, 0);
+        textCompCanvas.getContext("2d").filter = "none";
+        textCompCanvas.getContext("2d").drawImage(textCanvas, 0, 0);
+
+        let backgroundCompCanvas = document.createElement("canvas");
+        backgroundCompCanvas.width = 1000;
+        backgroundCompCanvas.height = 1000;
+
+        backgroundCompCanvas.getContext("2d").drawImage(backgroundCanvas, 0, 0);
+        backgroundCompCanvas.getContext("2d").drawImage(textCompCanvas, 0, 0);
+
+        let foregroundCompCanvas = document.createElement("canvas");
+        foregroundCompCanvas.width = 1000;
+        foregroundCompCanvas.height = 1000;
+
+        foregroundCompCanvas.getContext("2d").filter = "blur(10px)";
+        foregroundCompCanvas.getContext("2d").drawImage(foregroundCanvas, 0, 0);
+        foregroundCompCanvas.getContext("2d").filter = "blur(1px)";
+        foregroundCompCanvas.getContext("2d").drawImage(foregroundCanvas, 0, 0);
+
+        let borderCompCanvas = document.createElement("canvas");
+        borderCompCanvas.width = 1000;
+        borderCompCanvas.height = 1000;
+
+        borderCompCanvas.getContext("2d").filter = "blur(10px)";
+        borderCompCanvas.getContext("2d").drawImage(borderCanvas, 0, 0);
+        borderCompCanvas.getContext("2d").filter = "none";
+        borderCompCanvas.getContext("2d").drawImage(borderCanvas, 0, 0);
+
+        let finalCompCanvas = document.createElement("canvas");
+        finalCompCanvas.width = 1000;
+        finalCompCanvas.height = 1000;
+
+        finalCompCanvas.getContext("2d").drawImage(foregroundCompCanvas, 0, 0);
+        finalCompCanvas.getContext("2d").drawImage(backgroundCompCanvas, 0, 0);
+        finalCompCanvas.getContext("2d").drawImage(borderCompCanvas, 0, 0);
+
+        const link = document.createElement("a");
+        link.href = finalCompCanvas.toDataURL("image/png");
+        link.download = title;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        backgroundCanvas = null;
+        textCanvas = null;
+        foregroundCanvas = null;
+        borderCanvas = null;
+
+        textCompCanvas = null;
+        backgroundCompCanvas = null;
+        foregroundCompCanvas = null;
+        borderCompCanvas = null;
+
+        const texture = new THREE.CanvasTexture(finalCompCanvas);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.anisotropy = 1;
+        texture.flipY = false;
+        texture.colorSpace = THREE.SRGBColorSpace;
+        this.iconOverlay.material = new THREE.MeshBasicMaterial({map: texture, transparent: true});
+      });
     }
-    tags.forEach((tag) => {
-      if (tag in h2cTags)
-        placeTag(h2cTags[tag]);
-    });
-
-    const h2cBackgroundDiv = document.querySelector(".h2cBackgroundDiv");
-    const h2cTextDiv = document.querySelector(".h2cTextDiv");
-    const h2cForegroundDiv = document.querySelector(".h2cForegroundDiv");
-    const h2cBorderDiv = document.querySelector(".h2cBorderDiv");
-    Promise.all([
-      html2canvas(h2cBackgroundDiv, {scale: 1, backgroundColor: null, useCORS: true, ignoreElements: (element) => element.tagName === "VIDEO", width: h2cBackgroundDiv.offsetWidth, height: h2cBackgroundDiv.offsetHeight}),
-      html2canvas(h2cTextDiv, {scale: 1, backgroundColor: null, useCORS: true, ignoreElements: (element) => element.tagName === "VIDEO", width: h2cTextDiv.offsetWidth, height: h2cTextDiv.offsetHeight}),
-      html2canvas(h2cForegroundDiv, {scale: 1, backgroundColor: null, useCORS: true, ignoreElements: (element) => element.tagName === "VIDEO", width: h2cForegroundDiv.offsetWidth, height: h2cForegroundDiv.offsetHeight}),
-      html2canvas(h2cBorderDiv, {scale: 1, backgroundColor: null, useCORS: true, ignoreElements: (element) => element.tagName === "VIDEO", width: h2cBorderDiv.offsetWidth, height: h2cBorderDiv.offsetHeight})
-    ]).then(([backgroundCanvas, textCanvas, foregroundCanvas, borderCanvas]) => {
-
-      let textCompCanvas = document.createElement("canvas");
-      textCompCanvas.width = 1000;
-      textCompCanvas.height = 1000;
-
-      textCompCanvas.getContext("2d").filter = "blur(3px)";
-      textCompCanvas.getContext("2d").drawImage(textCanvas, 0, 0);
-      textCompCanvas.getContext("2d").filter = "none";
-      textCompCanvas.getContext("2d").drawImage(textCanvas, 0, 0);
-
-      let backgroundCompCanvas = document.createElement("canvas");
-      backgroundCompCanvas.width = 1000;
-      backgroundCompCanvas.height = 1000;
-
-      backgroundCompCanvas.getContext("2d").drawImage(backgroundCanvas, 0, 0);
-      backgroundCompCanvas.getContext("2d").drawImage(textCompCanvas, 0, 0);
-
-      let foregroundCompCanvas = document.createElement("canvas");
-      foregroundCompCanvas.width = 1000;
-      foregroundCompCanvas.height = 1000;
-
-      foregroundCompCanvas.getContext("2d").filter = "blur(10px)";
-      foregroundCompCanvas.getContext("2d").drawImage(foregroundCanvas, 0, 0);
-      foregroundCompCanvas.getContext("2d").filter = "blur(1px)";
-      foregroundCompCanvas.getContext("2d").drawImage(foregroundCanvas, 0, 0);
-
-      let borderCompCanvas = document.createElement("canvas");
-      borderCompCanvas.width = 1000;
-      borderCompCanvas.height = 1000;
-
-      borderCompCanvas.getContext("2d").filter = "blur(10px)";
-      borderCompCanvas.getContext("2d").drawImage(borderCanvas, 0, 0);
-      borderCompCanvas.getContext("2d").filter = "none";
-      borderCompCanvas.getContext("2d").drawImage(borderCanvas, 0, 0);
-
-      let finalCompCanvas = document.createElement("canvas");
-      finalCompCanvas.width = 1000;
-      finalCompCanvas.height = 1000;
-
-      finalCompCanvas.getContext("2d").drawImage(foregroundCompCanvas, 0, 0);
-      finalCompCanvas.getContext("2d").drawImage(backgroundCompCanvas, 0, 0);
-      finalCompCanvas.getContext("2d").drawImage(borderCompCanvas, 0, 0);
-
-      backgroundCanvas = null;
-      textCanvas = null;
-      foregroundCanvas = null;
-      borderCanvas = null;
-
-      textCompCanvas = null;
-      backgroundCompCanvas = null;
-      foregroundCompCanvas = null;
-      borderCompCanvas = null;
-
-      const texture = new THREE.CanvasTexture(finalCompCanvas);
-      texture.minFilter = THREE.LinearFilter;
-      texture.magFilter = THREE.LinearFilter;
-      texture.anisotropy = 1;
-      texture.flipY = false;
-      texture.colorSpace = THREE.SRGBColorSpace;
-      this.iconOverlay.material = new THREE.MeshBasicMaterial({map: texture, transparent: true});
-    });
+    else {
+      this.iconOverlay.material = new THREE.MeshBasicMaterial({map: bakedOverlayTexture, transparent: true});
+    }
 
     //ICON HOVER
     const h2cHoverDiv = document.querySelector(".h2cHoverDiv");
@@ -1132,8 +1103,6 @@ class Icon {
       texture.colorSpace = THREE.SRGBColorSpace;
       this.iconHover.material = new THREE.MeshBasicMaterial({map: texture, transparent: true, opacity: 0});
     });
-
-    updateLoading();
   }
 }
 
@@ -1213,31 +1182,16 @@ document.querySelectorAll(".LogoDiv")[1].addEventListener("click", () => {
 
 //BUTTONS HOVER/LEAVE
 //region
-[document.querySelector(".HomeButtonDiv"), document.querySelector(".AboutButtonDiv")].forEach(button => {
-  button.addEventListener("mouseenter", () => {
-    portfolioButtonHover = button;
-    if (portfolioButtonActive && !dragging && !userLock) {
-      document.body.style.cursor = "pointer";
-      gsap.to(button, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.2, overwrite: "auto"});
-    }});
-  button.addEventListener("mouseleave", () => {
-    portfolioButtonHover = null;
-    if (!dragging) {
-      document.body.style.cursor = "default";
-      gsap.to(button, { backgroundColor: "rgba(255, 255, 255, 0.05)", duration: 0.2, overwrite: "auto"});
-    }
-  });
-});
-
 [document.querySelector(".Filter1Div"), document.querySelector(".Filter2Div"), document.querySelector(".Filter3Div")].forEach((button) => {
   button.addEventListener("mouseenter", () => {
-    filterButtonHover = button;
+    console.log("ASD");
+    DOMHover = button;
     if (filterButtonsActive && !dragging && !userLock) {
       document.body.style.cursor = "pointer";
       gsap.to(button, {backgroundColor: "rgba(255, 255, 255, 0.1)", duration: 0.2, overwrite: "auto"});
     }});
   button.addEventListener("mouseleave", () => {
-    filterButtonHover = null;
+    DOMHover = null;
     gsap.to(button, {backgroundColor: "rgba(255, 255, 255, 0.05)", duration: 0.2, overwrite: "auto"});
     if (!portfolioButtonActive && !dragging && !userLock) {
       document.body.style.cursor = "default";
@@ -1248,29 +1202,6 @@ document.querySelectorAll(".LogoDiv")[1].addEventListener("click", () => {
 
 resize();
 //scrollTrigger();
-
-document.querySelector(".Button1").addEventListener("click", () => {
-  gsap.to(root.position, {y: 0, duration: 1, overwrite: "auto"});
-  gsap.to(camera.position, {x: -0.35, y: 0.25, z: -1.2, duration: 1, overwrite: "auto"});
-  gsap.to(camera.rotation, {y: Math.PI * 210 / 180, duration: 1, overwrite: "auto"});
-  gsap.to(laptopHinge.rotation, {x: Math.PI * 115 / 180, duration: 1, overwrite: "auto"});
-  deleteIcons();
-});
-
-document.querySelector(".Button2").addEventListener("click", () => {
-  gsap.to(root.position, {y: 0, duration: 1, overwrite: "auto"});
-  gsap.to(camera.position, {x: 0.15, y: 0.3, z: -1, duration: 1, overwrite: "auto"});
-  gsap.to(camera.rotation, {x: 0, duration: 1, overwrite: "auto"});
-  gsap.to(camera.rotation, {y: Math.PI, duration: 1, overwrite: "auto"});
-  gsap.to(laptopHinge.rotation, {x: Math.PI * 150 / 180, duration: 1, overwrite: "auto"});
-  spawnIcons();
-});
-
-document.querySelector(".Button3").addEventListener("click", () => {
-  gsap.to(root.position, {y: -0.5, duration: 1, overwrite: "auto"});
-  gsap.to(laptopHinge.rotation, {x: 0, duration: 1, overwrite: "auto"});
-  deleteIcons();
-});
 
 /*
 gsap.to(camera.position, {x: 0, y: 0.14, z: -0.5, duration: 1, overwrite: "auto"});
