@@ -21,7 +21,7 @@ let iconParameters = [
 //VERY IMPORTANT
 const BAKE_ICON_OVERLAY = false;
 const EXPORT_TEXTURES = false;
-printDebug(BAKE_ICON_OVERLAY ? "Baking textures..." : "Skipped baking textures! (24)");
+printDebug(BAKE_ICON_OVERLAY ? "Baking textures..." : "Skipped baking textures!");
 
 //const mobileUser = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 const mobileUser = false;
@@ -42,7 +42,6 @@ const screenSize = {
   height: window.innerHeight
 };
 const camera = new THREE.PerspectiveCamera( 35.98339890412515, screenSize.width / screenSize.height, 0.01, 1000);
-const dummyScroll = {y: 0};
 const cameraWrapper = {
   camera: camera,
   centeredTopDiv: document.querySelector(".CenteredTopDiv"),
@@ -62,9 +61,8 @@ renderer.setAnimationLoop(render);
 const loaderManager = new THREE.LoadingManager(() => {
   if (!mobileUser) {
     renderer.compile(scene, camera);
-    gsap.set(".LoadingIcon", {opacity: 0, overwrite: "auto"});
     onLoad();
-    printDebug("Finished loading (72)");
+    printDebug("Finished loading");
   }
   else {
     gsap.set(".MobileDiv", {opacity: 1, overwrite: "auto"});
@@ -255,7 +253,6 @@ let raycastResult = null;
 let previousRaycastResult = null;
 let userLock = true;
 let animationLock = null;
-let cameraPositionNormalized = 0;
 
 let divPositionMultiplier = null;
 
@@ -377,8 +374,7 @@ function render() {
   `<br>animationLock ${animationLock ? `${animationLock.name} ${animationLock.id}` : animationLock}` +
   `<br>userLock ${userLock}` +
   `<br>cameraPositionY ${camera.position.y}` +
-  `<br>dummyScrollY ${dummyScroll.y}` +
-  `<br>cameraPositionNormalized ${cameraPositionNormalized.toFixed(2)}` +
+  `<br>scrollYWrapper.y ${scrollYWrapper.y.toFixed(2)}` +
   `<br>activeIconIndex ${activeIconIndex}` +
   `<br>activeIcon ${iconGroupGroup.children.length ? `${iconGroupGroup.children[activeIconIndex].name} ${iconGroupGroup.children[activeIconIndex].id}` : "null"}` +
   `<br>projectsFrameActive ${projectsFrameActive}`});
@@ -584,53 +580,13 @@ function getMouseWorldPosition() {
 
 function scrollTrigger() {
 
-  cameraPositionNormalized = Math.min(1, Math.max(0, -dummyScroll.y / MAX_SCROLL));
-/*
-  //PORTFOLIO BUTTON TEXT
-  const portfolioButtonTextDiv = document.querySelector(".PortfolioButtonTextDiv");
-  const portfolioButtonTextStart = 0.4;
-  const portfolioButtonTextEnd = 0.7;
-  let portfolioButtonTextState = (portfolioButtonTextEnd - cameraPositionNormalized) / (portfolioButtonTextEnd - portfolioButtonTextStart);
-  switch (true) {
-    case cameraPositionNormalized < portfolioButtonTextStart: portfolioButtonTextState = 1; break;
-    case cameraPositionNormalized > portfolioButtonTextEnd: portfolioButtonTextState = 0; break;
-  }
-  portfolioButtonTextDiv.style.opacity = portfolioButtonTextState;
-  portfolioButtonTextDiv.style.filter = `blur(${(1 - portfolioButtonTextState) * 5}vh)`;
-  portfolioButtonActive = portfolioButtonTextState > 0.9;
-
-  //PORTFOLIO BUTTON
-  const portfolioButtonDiv = document.querySelector(".PortfolioButtonDiv");
-  const portfolioButtonDivStart = 0.4;
-  const portfolioButtonDivEnd = 0.6;
-  let portfolioButtonDivState = (cameraPositionNormalized - portfolioButtonDivStart) / (portfolioButtonDivEnd - portfolioButtonDivStart);
-  switch (true) {
-    case cameraPositionNormalized < portfolioButtonDivStart: portfolioButtonDivState = 0; break;
-    case cameraPositionNormalized > portfolioButtonDivEnd: portfolioButtonDivState = 1; break;
-  }
-  portfolioButtonDiv.style.width = `${(portfolioButtonDivState * 18.5) + 30}%`;*/
-
-  //ICON BUTTON
-  /*const homeButtonDiv = document.querySelector(".HomeButtonDiv");
-  const aboutButtonDiv = document.querySelector(".AboutButtonDiv");
-  const homeButtonIconStart = 0.3;
-  const homeButtonIconEnd = 0.5;
-  let homeButtonIconState = (homeButtonIconEnd - cameraPositionNormalized) / (homeButtonIconEnd - homeButtonIconStart);
-  switch (true) {
-    case cameraPositionNormalized < homeButtonIconStart: homeButtonIconState = 1; break;
-    case cameraPositionNormalized > homeButtonIconEnd: homeButtonIconState = 0; break;
-  }
-  homeButtonDiv.style.opacity = homeButtonIconState;
-  portfolioButtonActive = portfolioButtonDivState < 0.1;
-  aboutButtonDiv.style.opacity = homeButtonIconState;*/
-
   //FILTER BUTTONS
   const filterTextDivDivStart = 0.3;
   const filterTextDivDivEnd = 0.5;
-  let filterTextDivDivState = (cameraPositionNormalized - filterTextDivDivStart) / (filterTextDivDivEnd - filterTextDivDivStart);
+  let filterTextDivDivState = (scrollYWrapper.y - filterTextDivDivStart) / (filterTextDivDivEnd - filterTextDivDivStart);
   switch (true) {
-    case cameraPositionNormalized < filterTextDivDivStart: filterTextDivDivState = 0; break;
-    case cameraPositionNormalized > filterTextDivDivEnd: filterTextDivDivState = 1; break;
+    case scrollYWrapper.y < filterTextDivDivStart: filterTextDivDivState = 0; break;
+    case scrollYWrapper.y > filterTextDivDivEnd: filterTextDivDivState = 1; break;
   }
   document.querySelectorAll(".ProjectsGroup").forEach((element) => {
     //element.style.opacity = filterTextDivDivState;
@@ -640,20 +596,20 @@ function scrollTrigger() {
   //GLASS OPACITY
   const iconScreenStart = 0.3;
   const iconScreenEnd = 0.4;
-  let iconScreenState = (iconScreenEnd - cameraPositionNormalized) / (iconScreenEnd - iconScreenStart);
+  let iconScreenState = (iconScreenEnd - scrollYWrapper.y) / (iconScreenEnd - iconScreenStart);
   switch (true) {
-    case cameraPositionNormalized < iconScreenStart: iconScreenState = 1; break;
-    case cameraPositionNormalized > iconScreenEnd: iconScreenState = 0; break;
+    case scrollYWrapper.y < iconScreenStart: iconScreenState = 1; break;
+    case scrollYWrapper.y > iconScreenEnd: iconScreenState = 0; break;
   }
   glassMaterial.opacity = iconScreenState / 2;
 
   //LAPTOP GLOW
   const laptopGlowStart = 0;
   const laptopGlowEnd = 0.4;
-  let laptopGlowState = (laptopGlowEnd - cameraPositionNormalized) / (laptopGlowEnd - laptopGlowStart);
+  let laptopGlowState = (laptopGlowEnd - scrollYWrapper.y) / (laptopGlowEnd - laptopGlowStart);
   switch (true) {
-    case cameraPositionNormalized < laptopGlowStart: laptopGlowState = 1; break;
-    case cameraPositionNormalized > laptopGlowEnd: laptopGlowState = 0; break;
+    case scrollYWrapper.y < laptopGlowStart: laptopGlowState = 1; break;
+    case scrollYWrapper.y > laptopGlowEnd: laptopGlowState = 0; break;
   }
   gsap.set(".VideoPlayer1", {opacity: laptopGlowState, overwrite: "auto"});
 
@@ -661,10 +617,10 @@ function scrollTrigger() {
   //region
   const hingeStart = 0;
   const hingeEnd = 0.2;
-  let hingeState = (hingeEnd - cameraPositionNormalized) / (hingeEnd - hingeStart);
+  let hingeState = (hingeEnd - scrollYWrapper.y) / (hingeEnd - hingeStart);
   switch (true) {
-    case cameraPositionNormalized < hingeStart: hingeState = 1; break;
-    case cameraPositionNormalized > hingeEnd: hingeState = 0; break;
+    case scrollYWrapper.y < hingeStart: hingeState = 1; break;
+    case scrollYWrapper.y > hingeEnd: hingeState = 0; break;
   }
   laptopHinge.rotation.x = hingeState * Math.PI * 115 / 180;
   //endregion
@@ -673,10 +629,10 @@ function scrollTrigger() {
   //region
   const titleStart = 0.2;
   const titleEnd = 0.4;
-  let titleState = (titleEnd - cameraPositionNormalized) / (titleEnd - titleStart);
+  let titleState = (titleEnd - scrollYWrapper.y) / (titleEnd - titleStart);
   switch (true) {
-    case cameraPositionNormalized < titleStart: titleState = 1; break;
-    case cameraPositionNormalized > titleEnd: titleState = 0; break;
+    case scrollYWrapper.y < titleStart: titleState = 1; break;
+    case scrollYWrapper.y > titleEnd: titleState = 0; break;
   }
   gsap.set(".TitleFrameDiv", {opacity: titleState, overwrite: "auto"});
   //endregion
@@ -684,26 +640,26 @@ function scrollTrigger() {
   //CUBE
   const cubeStart = 0.2;
   const cubeEnd = 0.4;
-  let cubeState = (cameraPositionNormalized - cubeStart) / (cubeEnd - cubeStart);
+  let cubeState = (scrollYWrapper.y - cubeStart) / (cubeEnd - cubeStart);
   switch (true) {
-    case cameraPositionNormalized < cubeStart: cubeState = 0; break;
-    case cameraPositionNormalized > cubeEnd: cubeState = 1; break;
+    case scrollYWrapper.y < cubeStart: cubeState = 0; break;
+    case scrollYWrapper.y > cubeEnd: cubeState = 1; break;
   }
   gsap.set(root.position, {y: -cubeState - 0.1, overwrite: "auto"});
 
   //ICONS
   switch (true) {
-    case cameraPositionNormalized < 0.3 || cameraPositionNormalized > 0.6:
+    case scrollYWrapper.y < 0.3 || scrollYWrapper.y > 0.6:
       if (projectsFrameActive) {
-        printDebug("projectsFrameActive set to false (~703)");
+        printDebug("projectsFrameActive set to false");
         removeIcons();
         projectsFrameActive = false;
         gsap.to(".ProjectsGroup", {opacity: 0, filter: "blur(1vh)", duration: 0.5, overwrite: "auto"});
       }
       break;
-    case cameraPositionNormalized > 0.3:
+    case scrollYWrapper.y > 0.3:
       if (!projectsFrameActive) {
-        printDebug("projectsFrameActive set to true (~710)");
+        printDebug("projectsFrameActive set to true");
         spawnIcons();
         projectsFrameActive = true;
         gsap.to(".ProjectsGroup", {opacity: 1, filter: "blur(0vh)", duration: 0.5, overwrite: "auto"});
@@ -714,10 +670,10 @@ function scrollTrigger() {
   //ABOUT FRAME
   const aboutStart = 0.8;
   const aboutEnd = 1;
-  let aboutState = (cameraPositionNormalized - aboutStart) / (aboutEnd - aboutStart);
+  let aboutState = (scrollYWrapper.y - aboutStart) / (aboutEnd - aboutStart);
   switch (true) {
-    case cameraPositionNormalized < aboutStart: aboutState = 0; break;
-    case cameraPositionNormalized > aboutEnd: aboutState = 1; break;
+    case scrollYWrapper.y < aboutStart: aboutState = 0; break;
+    case scrollYWrapper.y > aboutEnd: aboutState = 1; break;
   }
   gsap.set(".AboutFrameDiv", {opacity: aboutState, overwrite: "auto"});
 
@@ -742,31 +698,22 @@ function scrollTrigger() {
 }
 
 function scrollCameraBy(deltaY, duration) {
-  //cameraWrapper.centeredTopDiv.style.willChange = "transform";
-  //cameraWrapper.centeredBottomDiv.style.willChange = "transform";
-  const afterScroll = dummyScroll.y - deltaY;
-  if (afterScroll >= 0) {
-    gsap.to(dummyScroll, {y: 0, duration: duration, overwrite: true, onUpdate: scrollTrigger});
-    //gsap.to(cameraWrapper.centeredTopDiv, {y: 0, duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredTopDiv.style.willChange = "auto"}});
-    //gsap.to(cameraWrapper.centeredBottomDiv, {y: 0, duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredBottomDiv.style.willChange = "auto"}});
-
+  const afterScroll = scrollYWrapper.y + deltaY;
+  if (afterScroll <= 0) {
+    gsap.to(scrollYWrapper, {y: 0, duration: duration, overwrite: true, onUpdate: scrollTrigger});
   }
-  else if (afterScroll <= -MAX_SCROLL) {
-    gsap.to(dummyScroll, {y: -MAX_SCROLL, duration: duration, overwrite: true, onUpdate: scrollTrigger});
-    //gsap.to(cameraWrapper.centeredTopDiv, {y: -MAX_SCROLL * divPositionMultiplier * gsap.getProperty(cameraWrapper.centeredTopDiv, "scale"), duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredTopDiv.style.willChange = "auto"}});
-    //gsap.to(cameraWrapper.centeredBottomDiv, {y: -MAX_SCROLL * divPositionMultiplier * gsap.getProperty(cameraWrapper.centeredBottomDiv, "scale"), duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredBottomDiv.style.willChange = "auto"}});
+  else if (afterScroll >= MAX_SCROLL) {
+    gsap.to(scrollYWrapper, {y: MAX_SCROLL, duration: duration, overwrite: true, onUpdate: scrollTrigger});
   }
   else {
-    gsap.to(dummyScroll, {y: `-=${deltaY}`, duration: duration, overwrite: true, onUpdate: scrollTrigger});
-    //gsap.to(cameraWrapper.centeredTopDiv, {y: `-=${deltaY * divPositionMultiplier * gsap.getProperty(cameraWrapper.centeredTopDiv, "scale")}`, duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredTopDiv.style.willChange = "auto"}});
-    //gsap.to(cameraWrapper.centeredBottomDiv, {y: `-=${deltaY * divPositionMultiplier * gsap.getProperty(cameraWrapper.centeredBottomDiv, "scale")}`, duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredBottomDiv.style.willChange = "auto"}});
+    gsap.to(scrollYWrapper, {y: `+=${deltaY}`, duration: duration, overwrite: true, onUpdate: scrollTrigger});
   }
 }
 
 function scrollCameraTo(Y, duration) {
   //cameraWrapper.centeredTopDiv.style.willChange = "transform";
   //cameraWrapper.centeredBottomDiv.style.willChange = "transform";
-  gsap.to(dummyScroll, {y: -Y, duration: duration, overwrite: "auto", onUpdate: scrollTrigger});
+  gsap.to(scrollYWrapper, {y: -Y, duration: duration, overwrite: "auto", onUpdate: scrollTrigger});
   //gsap.to(cameraWrapper.centeredTopDiv, {y: Y * divPositionMultiplier, duration: duration, overwrite: "auto", onComplete: () => {cameraWrapper.centeredTopDiv.style.willChange = "auto"}});
   //gsap.to(cameraWrapper.centeredBottomDiv, {y: Y * divPositionMultiplier, duration: duration, overwrite: "auto", onComplete: () => {cameraWrapper.centeredBottomDiv.style.willChange = "auto"}});
 }
@@ -903,10 +850,12 @@ function spawnIconsHelper(boolean) {
   gsap.set(iconGroupGroup.position, {x: -iconGroupGroup.children[activeIconIndex].position.x, overwrite: "auto"});
   document.querySelector(".ProjectTitleText").textContent = iconGroupGroup.children[activeIconIndex].userData.title;
   document.querySelector(".ProjectDescriptionText").textContent = iconGroupGroup.children[activeIconIndex].userData.description;
-  document.querySelector(".VideoPlayer2").src = iconGroupGroup.children[activeIconIndex].userData.video.src;
+  document.querySelector(".IconGlow1").src = iconGroupGroup.children[activeIconIndex].userData.video.src;
+  gsap.to(".IconGlow1", {opacity: 1, duration: 0.5, overwrite: "auto"});
 }
 
 function removeIcons() {
+
   iconGroupGroup.children.forEach((child) => {
     gsap.killTweensOf(child.position);
     gsap.killTweensOf(child.scale);
@@ -942,7 +891,12 @@ function onLoad() {
 
 function printDebug(log) {
   const div = document.querySelector(".Debug2");
-  gsap.set(div, {innerHTML: `${div.innerHTML}<br>${log}`});
+  const line = new Error().stack.split("\n")[2].match(/:(\d+):\d+\)?$/)[1];
+  if (div.innerHTML.length > 300)
+    gsap.set(div, {innerHTML: ""});
+  else {
+    gsap.set(div, {innerHTML: `${div.innerHTML}<br>${log} [${line}]`});
+  }
 }
 
 class Icon {
