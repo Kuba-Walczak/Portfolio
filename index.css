@@ -1,6 +1,6 @@
 :root {
-    --main-color-rgb: 67, 59, 255;
-    --text-color-rgb: 158, 223, 255;
+    --main-color-rgb: 100, 100, 100;
+    --text-color-rgb: 200, 200, 200;
     --secondary-color-rgb: 67, 59, 255;
     --monitor-color-rgb: 2, 0, 36;
 }
@@ -126,6 +126,8 @@ div.h2cGlowDiv {
     border-color: black;
     border-style: solid;
     box-sizing: content-box;
+
+    opacity: 0.5;
 }
 div.h2cBackgroundDiv {
     position: absolute;
@@ -283,6 +285,8 @@ div.h2cBorderDiv {
     border-color: black;
     box-sizing: border-box;
     border-radius: 25px;
+
+    opacity: 0;
 }
 div.h2cHoverDiv {
     position: absolute;
@@ -299,27 +303,8 @@ div.h2cHoverDiv {
 }
 /*endregion*/
 
-.Debug1 {
-    position: absolute;
-    top: 1%;
-    left: 1%;
-    color: red;
-    font-size: 500%;
-    z-index: 99;
-    pointer-events: none;
-}
-.Debug2 {
-    position: absolute;
-    top: 15%;
-    left: 1%;
-    color: red;
-    font-size: 500%;
-    z-index: 99;
-    pointer-events: none;
-}
-
 body {
-    background: black;
+    background: rgba(0, 0, 0, 0.9);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -327,6 +312,34 @@ body {
     overflow-y: hidden;
     margin: 0;
     padding: 0;
+}
+.Debug1 {
+    position: absolute;
+    top: 1%;
+    left: 1%;
+    color: red;
+    font-size: 650%;
+    z-index: 99;
+    pointer-events: none;
+}
+.Debug2 {
+    position: absolute;
+    top: 40%;
+    left: 1%;
+    color: red;
+    font-size: 350%;
+    z-index: 99;
+    pointer-events: none;
+}
+div.CenteredTopDiv {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
+    top: 50%;
+    left: 50%;
+    z-index: 10;
 }
 div.LoadingDiv {
     position: fixed;
@@ -375,7 +388,7 @@ div.MobileButtonIconDiv {
     transform: translate(-50%, -50%);
     background: url("public/LandingPage/Icons/InstagramIcon.svg");
 }
-div.CenteredDiv {
+div.CenteredBottomDiv {
     position: absolute;
     display: flex;
     justify-content: center;
@@ -384,29 +397,52 @@ div.CenteredDiv {
     top: 50%;
     left: 50%;
 }
-
-.MainButton::before {
-    background: linear-gradient(45deg, rgba(255,255,255,0.3), rgba(255,255,255,0), rgba(255,255,255,0.3));
+div.HomeFrameDiv {
+    position: absolute;
+    width: 90%;
+    height: 80%;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 100px;
+    overflow: hidden;
+    z-index: 1;
 }
-
+.HomeButtonDiv {
+    position: absolute;
+    width: 100%;
+    height: 10%;
+    top: 5%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px) saturate(180%);
+    border-radius: 100px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+            100px 100px 128px 0 rgba(0, 0, 0, 0.5),
+            inset 5px -5px 0 rgba(255, 255, 255, 0.5);
+}
+.MainButton::before {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 60%);
+    filter: blur(100px);
+}
 .MainButton {
     position: absolute;
     width: 25%;
-    height: 15%;
-    top: 35%;
-    left: 15%;
+    height: 75%;
+    top: 50%;
     transform: translate(-50%, -50%);
-    background: transparent;
-    backdrop-filter: blur(10px) saturate(120%);
-    border-radius: 1000px;
-    border: 2px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px) saturate(180%);
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
     box-shadow:
-            0 0 50px rgba(255,255,255,0.9),
-            inset 2px 2px 0 rgba(255,255,255,0.2);
+            100px 100px 128px 0 rgba(0, 0, 0, 0.5),
+            inset 5px -5px 0 rgba(255, 255, 255, 0.5);
     overflow: hidden;
     font-size: 100%;
-    z-index: 99;
 }
 
 .label {
@@ -414,24 +450,43 @@ div.CenteredDiv {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 40%;
-    font-family: "Inter Bolder", sans-serif;
-    letter-spacing: 5px;
+    font-size: 30%;
+    font-family: "Inter Standard", sans-serif;
+    letter-spacing: 10px;
+    opacity: 1;
 }
-
+.Button1 {
+    left: 15%;
+}
 .Button2 {
-    top: 55%;
+    width: 35%;
+    left: 50%;
 }
 .Button3 {
-    top: 75%;
+    left: 85%;
+}
+.Button4 {
+    left: 15%;
+}
+.Button5 {
+    width: 35%;
+    left: 50%;
+}
+.Button6 {
+    left: 85%;
 }
 
-
+div.BackgroundDiv::Before {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+}
 div.BackgroundDiv {
     position: absolute;
-    width: 200%;
-    height: 400%;
-    background: radial-gradient(circle at 60% 55%, rgba(var(--secondary-color-rgb), 0.75), lightskyblue);
+    width: 100%;
+    height: 100%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.05);
 }
 div.BackgroundVideoDiv {
     position: absolute;
@@ -473,27 +528,28 @@ canvas.BackgroundCanvas2 {
 }
 
 .TitleFrameDiv::before {
-    background: linear-gradient(45deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.2));
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.1));
 }
 .TitleFrameDiv {
     position: absolute;
-    height: 50%;
-    width: 50%;
+    height: 25%;
+    width: 30%;
+    top: 45%;
+    left: 20%;
     transform: translate(-50%, -50%);
-    background: linear-gradient(rgba(var(--main-color-rgb), 0.1), rgba(var(--secondary-color-rgb), 0.3));
-    border-radius: 200px;
+    border-radius: 20px;
     backdrop-filter: blur(10px) saturate(120%);
     box-shadow:
         0 0 10px rgba(255,255,255,0.5),
         inset 5px 5px 2px rgba(255,255,255,0.3),
-        inset 5px 5px 200px rgba(255,255,255,0.3);
+        inset 5px 5px 20px rgba(255,255,255,0.3);
     overflow: hidden;
 }
 .TitleFrameDiv::after {
     content: "";
     position: absolute;
     inset: 0;
-    border-radius: 200px;
+    border-radius: 20px;
     border: 2px solid rgba(255,255,255,0.5);
     pointer-events: none;
     overflow: hidden;
@@ -503,7 +559,7 @@ p.TitleText1 {
     top: 40%;
     left: 5%;
     transform: translate(0, -50%);
-    font-size: 40%;
+    font-size: 60%;
 }
 p.TitleText2 {
     position: absolute;
@@ -513,23 +569,6 @@ p.TitleText2 {
     font-size: 20%;
 }
 
-div.HomeButtonDiv {
-    position: absolute;
-    height: 15%;
-    aspect-ratio: 1 / 1;
-    left: 30%;
-    top: 88%;
-    transform: translate(-50%, -50%);
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border-radius: 10px;
-    border-style: solid;
-    border-width: 0.1vh;
-    border-color: rgba(255, 255, 255, 0.2);
-    box-sizing: border-box;
-    will-change: opacity;
-    z-index: 1;
-}
 div.HomeButtonIconDivDiv {
     position: absolute;
     width: 100%;
@@ -546,10 +585,17 @@ div.HomeButtonIconDiv {
     mask-image: url("public/LandingPage/Icons/HomeIcon.svg");
     mask-size: contain;
 }
-section.AboutSection {
+div.AboutFrameDiv {
     position: absolute;
-    width: 100%;
-    height: 100%;
+    width: 60%;
+    height: 80%;
+    top: 50%;
+    left: 65%;
+    transform: translate(-50%, -50%);
+    background:
+            radial-gradient(circle at 100% 0%, rgba(var(--monitor-color-rgb), 1), transparent),
+            radial-gradient(circle at 100% 100%, rgba(var(--monitor-color-rgb), 1), transparent), rgba(var(--main-color-rgb), 1);
+
     z-index: 1;
     opacity: 0;
 }
@@ -559,22 +605,6 @@ p.AboutText {
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 50%;
-}
-div.ScrollWindowDiv {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    opacity: 0.7;
-}
-div.ScrollDiv {
-    position: absolute;
-    width: 100%;
-    height: 200%;
-    top: 0;
-    background:
-            radial-gradient(circle at 100% 0%, rgba(var(--monitor-color-rgb), 1), transparent),
-            radial-gradient(circle at 100% 100%, rgba(var(--monitor-color-rgb), 1), transparent), rgba(var(--main-color-rgb), 1);
 }
 img.FaceBackgroundImage {
     position: absolute;
@@ -849,8 +879,8 @@ div.AboutButtonDiv {
     position: absolute;
     height: 15%;
     aspect-ratio: 1 / 1;
-    left: 70%;
-    top: 88%;
+    left: 0%;
+    top: 0%;
     transform: translate(-50%, -50%);
     background: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
@@ -910,48 +940,20 @@ div.BackgroundGlow2Div {
     opacity: 0;
 }
 
-.MonitorFrameDiv::before {
-    background: linear-gradient(45deg, rgba(255,255,255,0.2), rgba(255,255,255,0.2), rgba(255,255,255,0.2));
-}
-
-.MonitorFrameDiv {
-    position: absolute;
-    height: 63%;
-    width: 65%;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: black;
-    backdrop-filter: blur(10px) saturate(120%);
-    border-radius: 200px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 0 100px rgba(255,255,255,0.5);
-    overflow: hidden;
-    perspective: 6000px;
-
-    opacity: 0;
-}
-div.MonitorDiv {
-    position: absolute;
-    display: flex;
-    justify-content: center;
-    width: 90%;
-    height: 78%;
-    top: 50%;
-    left: 50%;
-    background:
-            radial-gradient(circle at 0% 0%, rgba(var(--monitor-color-rgb), 1), transparent),
-            radial-gradient(circle at 100% 100%, rgba(var(--monitor-color-rgb), 1), transparent), rgba(var(--main-color-rgb), 1);
-    transform: translate(-50%, -50%);
-}
-
 div.FilterDivDiv {
     position: absolute;
-    width: 50%;
-    height: 15%;
-    top: 20%;
-    left: 65%;
+    width: 15%;
+    height: 35%;
+    top: 80%;
+    left: 10%;
     transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px) saturate(180%);
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+            100px 100px 128px 0 rgba(0, 0, 0, 0.5),
+            inset 5px -5px 0 rgba(255, 255, 255, 0.5);
 }
 div.FilterIconDivDiv {
     position: absolute;
@@ -960,46 +962,39 @@ div.FilterIconDivDiv {
 }
 div.FilterIconDiv {
     position: absolute;
-    width: 2%;
-    padding-bottom: 2%;
-    top: 25%;
+    width: 20%;
+    padding-bottom: 20%;
+    top: 50%;
+    left: 75%;
     transform: translate(-50%, -50%);
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 7px;
+    border-radius: 70px;
     border-style: solid;
     border-width: 0.1vh;
     border-color: white;
 }
-div.FilterIcon1Div {
-    left: 19%;
-}
-div.FilterIcon2Div {
-    left: 50%;
-}
-div.FilterIcon3Div {
-    left: 81%;
-}
-div.FilterButtonTextDiv {
+div.FilterButtonDiv {
     position: absolute;
-    width: 25%;
-    height: 40%;
+    width: 80%;
+    height: 20%;
+    left: 50%;
     top: 60%;
     transform: translate(-50%, -50%);
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
+    border-radius: 100px;
     border-style: solid;
     border-width: 0.1vh;
     border-color: rgba(255, 255, 255, 0.5);
     box-sizing: border-box;
 }
 div.Filter1Div {
-    left: 19%;
+    top: 25%;
 }
 div.Filter2Div {
-    left: 50%;
+    top: 50%;
 }
 div.Filter3Div {
-    left: 81%;
+    top: 75%;
 }
 p.FilterButtonText {
     position: absolute;
@@ -1008,48 +1003,64 @@ p.FilterButtonText {
     transform: translate(-50%, -50%);
     font-size: 17.5%;
 }
+.VideoPlayer2 {
+    position: absolute;
+    object-fit: cover;
+    width: 70%;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    filter: blur(10vh) saturate(300%);
+    opacity: 0.5;
+}
+.ProjectInfoDiv {
+    position: absolute;
+    width: 40%;
+    height: 25%;
+    top: 70%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px) saturate(180%);
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+            100px 100px 128px 0 rgba(0, 0, 0, 0.5),
+            inset 5px -5px 0 rgba(255, 255, 255, 0.5);
+}
+.ProjectTitleText {
+    font-size: 20%;
+}
+.ProjectDescriptionText {
+    top: 50%;
+    font-size: 20%;
+}
+.ArrowDiv {
+    position: absolute;
+    width: 40%;
+    height: 10%;
+    top: 90%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px) saturate(180%);
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+            100px 100px 128px 0 rgba(0, 0, 0, 0.5),
+            inset 5px -5px 0 rgba(255, 255, 255, 0.5);
+}
 
 video.VideoPlayer1 {
     position: absolute;
     object-fit: cover;
-    width: 40%;
-    height: 40%;
-    top: 55%;
-    left: 75%;
+    width: 50%;
+    height: 50%;
+    top: 48%;
+    left: 67%;
     transform: translate(-50%, -50%);
-    opacity: 1;
-    filter: blur(15vh) saturate(500%);
-    z-index: 10;
-}
-
-section.SlotSection {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
+    filter: blur(10vh) saturate(300%);
     pointer-events: none;
-    opacity: 0;
-}
-p.SlotText {
-    position: absolute;
-    top: -26%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 50%;
-}
-div.Slot1Div {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(deepskyblue, blue);
-}
-div.Slot2Div {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    --radius: -0.5%;
-    background: radial-gradient(circle at 50% 50%, black calc(var(--radius)), transparent calc(var(--radius) + 0.5%));
-    opacity: 0;
 }
 
 canvas.threejs {

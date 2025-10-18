@@ -10,33 +10,28 @@ const projectType = {
   ART: "3D"
 };
 let iconParameters = [
-  [projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/KineticRush4.webm", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"]],
-  [projectType.TECHNICAL_ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 2", "Description 2", ["blender", "js"]],
-  [projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 3", "Description 3", ["aftereffects"]],
-  [projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"]]
+  [projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/KineticRush4.webm", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"], "pjc"],
+  [projectType.TECHNICAL_ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 2", "Description 2", ["blender", "js"], "pjc2"],
+  [projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 3", "Description 3", ["aftereffects"], "pjc2"],
+  [projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"], "pjc2"]
 ];
 
 //CONSTANTS
 //region
 //VERY IMPORTANT
 const BAKE_ICON_OVERLAY = false;
-printDebug(BAKE_ICON_OVERLAY ? "Baking textures..." : "Skipped baking textures!");
+const EXPORT_TEXTURES = false;
+printDebug(BAKE_ICON_OVERLAY ? "Baking textures..." : "Skipped baking textures! (24)");
 
 //const mobileUser = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 const mobileUser = false;
-const MAIN_COLOR = {
-  r: 67,
-  g: 59,
-  b: 255
-}
 const MAIN_COLOR_NORMALIZED = new THREE.Color(0x9EDFFF);
 const MAGIC_DIV_OFFSET = 0.96;
-const DEFAULT_FONT_SIZE = 10;
-const ICON_GROUP_SPAWNER_INITIAL_POSITION = new THREE.Vector3(0.15, 0.36, 0);
-const ICON_GAP_HORIZONTAL = 0.15;
-const ICON_GAP_VERTICAL = ICON_GAP_HORIZONTAL;
-const ICON_SCALE = 1.35;
-const ICON_ROTATION = 0;
+const MAX_SCROLL = 1;
+const DEFAULT_FONT_SIZE = 15;
+const ICON_GROUP_SPAWNER_INITIAL_POSITION = new THREE.Vector3(0, 0.08, 0);
+const ICON_GAP_HORIZONTAL = 0.175;
+const ICON_SCALE = 2;
 //endregion
 
 //THREE JS SETUP
@@ -47,17 +42,11 @@ const screenSize = {
   height: window.innerHeight
 };
 const camera = new THREE.PerspectiveCamera( 35.98339890412515, screenSize.width / screenSize.height, 0.01, 1000);
-camera.rotation.order = 'YXZ';
-camera.position.x = 0;
-camera.position.y = 0.25;
-camera.position.z = -1;
-camera.rotation.x = Math.PI * -5 / 180;
-camera.rotation.y = Math.PI;
+const dummyScroll = {y: 0};
 const cameraWrapper = {
   camera: camera,
-  centeredDiv: document.querySelector(".CenteredDiv"),
-  scrollDiv: document.querySelector(".ScrollDiv"),
-  faceForegroundImage: document.querySelector(".FaceForegroundImage")
+  centeredTopDiv: document.querySelector(".CenteredTopDiv"),
+  centeredBottomDiv: document.querySelector(".CenteredBottomDiv")
 };
 const canvas = document.querySelector(".threejs");
 const renderer = new THREE.WebGLRenderer({
@@ -75,7 +64,7 @@ const loaderManager = new THREE.LoadingManager(() => {
     renderer.compile(scene, camera);
     gsap.set(".LoadingIcon", {opacity: 0, overwrite: "auto"});
     onLoad();
-    printDebug("Finished loading");
+    printDebug("Finished loading (72)");
   }
   else {
     gsap.set(".MobileDiv", {opacity: 1, overwrite: "auto"});
@@ -103,6 +92,12 @@ loader.setDRACOLoader(dracoLoader);
 const cubeMap = new THREE.CubeTextureLoader().setPath("https://PortfolioPullZone.b-cdn.net/LandingPage/Textures/").load(["CubeMap.webp", "CubeMap.webp", "CubeMap.webp", "CubeMap.webp", "CubeMap.webp", "CubeMap.webp"]);
 
 const textureBake = textureLoader.load("Bake.png", (textureBake) => {
+  textureBake.flipY = false;
+  textureBake.colorSpace = THREE.SRGBColorSpace;
+  textureBake.minFilter = THREE.LinearFilter;
+  textureBake.magFilter = THREE.LinearFilter;
+});
+const textureBake2 = textureLoader.load("Bake2.png", (textureBake) => {
   textureBake.flipY = false;
   textureBake.colorSpace = THREE.SRGBColorSpace;
   textureBake.minFilter = THREE.LinearFilter;
@@ -145,7 +140,7 @@ loader.load("LandingPage/Models/Scene.glb", (glb) => {
         root = child;
         break;
       case child.name === "Cube":
-        child.material = new THREE.MeshBasicMaterial({map: textureBake});
+        child.material = new THREE.MeshBasicMaterial({map: textureBake2});
         cube = child;
         break;
       case child.name === "LaptopBase":
@@ -200,7 +195,7 @@ loader.load("LandingPage/Models/AssetsCompressed.glb", (glb) => {
         iconComponentGroup = child;
         break;
       case child.name.includes("IconFrame"):
-        child.material = glassMaterial;
+        child.material = new THREE.MeshBasicMaterial({visible: false});
         break;
       case child.name === "IconGlass":
         child.material = glassMaterial;
@@ -232,7 +227,7 @@ loader.load("LandingPage/Models/AssetsCompressed.glb", (glb) => {
     else
       randomizePosition(primitive, -0.1, 0.1, -1, 0.5,0.1, 0.2);
     ambientAnimation(primitive);
-    scene.add(primitive);
+    //scene.add(primitive);
   });
 });
 //endregion
@@ -254,15 +249,13 @@ const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let mouseDown = false;
 let dragging = null;
-let offset = new THREE.Vector3();
-let plane = new THREE.Plane();
-let intersection = new THREE.Vector3();
-const lookPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -0.3);
+const lookPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -5);
 const lookIntersection = new THREE.Vector3();
 let raycastResult = null;
 let previousRaycastResult = null;
 let userLock = true;
 let animationLock = null;
+let cameraPositionNormalized = 0;
 
 let divPositionMultiplier = null;
 
@@ -271,11 +264,9 @@ let portfolioButtonActive = true;
 
 let filterButtonsActive = false;
 
-let monitorPowered = true;
-let monitorDivHover = false;
-let monitorActive = false;
-let scrollingDiscovered = false;
-let scrollShowInterval = null;
+let projectsFrameActive = false;
+
+let activeIconIndex = 0;
 
 const backgroundVideo = document.querySelector(".BackgroundVideo");
 const backgroundCanvas1 = document.querySelector(".BackgroundCanvas1");
@@ -304,7 +295,7 @@ function render() {
         case raycastResult.parent.name === "IconGroup" && (raycastResult.parent === dragging || !dragging):
           const targetMatrix = new THREE.Matrix4().lookAt(raycastResult.parent.position, getMouseWorldPosition(), raycastResult.parent.up);
           targetMatrix.multiply(new THREE.Matrix4().makeRotationY(Math.PI));
-          targetMatrix.multiply(new THREE.Matrix4().makeRotationX(-ICON_ROTATION));
+          targetMatrix.multiply(new THREE.Matrix4().makeRotationX(0));
           const targetQuaternion = new THREE.Quaternion().setFromRotationMatrix(targetMatrix);
           gsap.to(raycastResult.parent.quaternion, {x: targetQuaternion.x, y: targetQuaternion.y, z: targetQuaternion.z, w: targetQuaternion.w, duration: 0.5});
           break;
@@ -320,6 +311,7 @@ function render() {
         switch (true) {
           case previousRaycastResult.name === "IconHitbox" && previousRaycastResult !== animationLock:
             const iconGroup = previousRaycastResult.parent;
+            iconGroup.userData.video.pause();
             const tempTl = iconGroup.userData.tl;
             if (tempTl && tempTl.time() >= tempTl.labels["selected"])
               animationLock = previousRaycastResult;
@@ -332,8 +324,8 @@ function render() {
             .to(iconGroup.userData.iconHover.material, {opacity: 0, duration: 0.25, overwrite: "auto"}, "<")
             .to(iconGroup.userData.iconScreen.material.map.repeat, {x: iconGroup.userData.screenTextureRepeatX, y: 1, duration: 0.25, overwrite: "auto"}, "<")
             .to(iconGroup.userData.iconScreen.material.map.offset, {x: iconGroup.userData.screenTextureOffsetX, y: 0, duration: 0.25, overwrite: "auto"}, "<")
-            .to(iconGroup.rotation, {x:ICON_ROTATION, y: 0, z: 0, duration: 0.5, overwrite: "auto"}, "<")
-            .to(iconGroup.userData.iconScreen.material, {opacity: 0.5, duration: 0.5, overwrite: "auto"}, "<").call(() => {
+            .to(iconGroup.rotation, {x: 0, y: 0, z: 0, duration: 0.5, overwrite: "auto"}, "<")
+            .to(iconGroup.userData.iconScreen.material, {opacity: 1, duration: 0.5, overwrite: "auto"}, "<").call(() => {
               animationLock = null;
             }, null, ">")
             .to(iconGroup.userData.iconOverlay.material, {opacity: 1, duration: 1, overwrite: "auto"}, "<")
@@ -353,6 +345,7 @@ function render() {
           case raycastResult.name === "IconHitbox" && raycastResult !== animationLock:
             document.body.style.cursor = "grab";
             const iconGroup = raycastResult.parent;
+            iconGroup.userData.video.play();
             if (iconGroup.userData.tl && iconGroup.userData.tl.isActive())
               iconGroup.userData.tl.kill();
             const tl = gsap.timeline();
@@ -366,13 +359,6 @@ function render() {
             .to(iconGroup.scale, {x: ICON_SCALE * iconGroup.userData.aspectRatio, duration: 1, overwrite: "auto"}, ">")
             .to(iconGroup.userData.iconScreen.material.map.repeat, {x: 1, y: 1, duration: 1, overwrite: "auto"}, "<")
             .to(iconGroup.userData.iconScreen.material.map.offset, {x: 0, y: 0, duration: 1, overwrite: "auto"}, "<");
-            break;
-          case raycastResult.name === "MonitorButton":
-            document.body.style.cursor = "pointer";
-            if (monitorPowered) {
-              const color2 = new THREE.Color(0xff0000);
-              gsap.to(monitorButton.material.color, {r: color2.r, g: color2.g, b: color2.b, duration: 0.2, overwrite: "auto"});
-            }
             break;
         }
       }
@@ -389,7 +375,13 @@ function render() {
   `<br>raycastResult ${raycastResult ? `${raycastResult.name} ${raycastResult.id}` : raycastResult}` +
   `<br>previousRaycastResult ${previousRaycastResult ? `${previousRaycastResult.name} ${previousRaycastResult.id}` : previousRaycastResult}` +
   `<br>animationLock ${animationLock ? `${animationLock.name} ${animationLock.id}` : animationLock}` +
-  `<br>userLock ${userLock}`});
+  `<br>userLock ${userLock}` +
+  `<br>cameraPositionY ${camera.position.y}` +
+  `<br>dummyScrollY ${dummyScroll.y}` +
+  `<br>cameraPositionNormalized ${cameraPositionNormalized.toFixed(2)}` +
+  `<br>activeIconIndex ${activeIconIndex}` +
+  `<br>activeIcon ${iconGroupGroup.children.length ? `${iconGroupGroup.children[activeIconIndex].name} ${iconGroupGroup.children[activeIconIndex].id}` : "null"}` +
+  `<br>projectsFrameActive ${projectsFrameActive}`});
 
   renderer.render(scene, camera);
 
@@ -398,14 +390,9 @@ function render() {
 //END OF THREE JS SETUP
 //endregion
 
-/*window.addEventListener("wheel", (event) => {
-  if (!userLock)
-    if (monitorDivHover && monitorPowered && monitorActive) {
-      scrollMonitorBy(event.deltaY * 0.2, 0.5, true)
-    }
-    else
-      scrollCameraBy(event.deltaY * 0.0009, 0.5);
-});*/
+window.addEventListener("wheel", (event) => {
+  scrollCameraBy(event.deltaY * 0.0005, 0.5);
+});
 
 window.addEventListener("mousemove", (event) => {
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -419,36 +406,51 @@ window.addEventListener("mousedown", (event) => {
 
     switch (true) {
       case DOMHover && DOMHover.className.includes("MainButton"): {
-        monitorState(false);
         let buttonGroup = null;
         switch (DOMHover) {
           case document.querySelector(".Button1"):
             buttonGroup = ".HomeGroup";
-            gsap.to(root.position, {y: 0, duration: 1, overwrite: "auto"});
-            gsap.to(camera.position, {x: -0.35, y: 0.25, z: -1.2, duration: 1, overwrite: "auto"});
-            gsap.to(camera.rotation, {y: Math.PI * 210 / 180, duration: 1, overwrite: "auto"});
-            gsap.to(laptopHinge.rotation, {x: Math.PI * 115 / 180, duration: 1, overwrite: "auto"});
-            removeIcons();
+            scrollCameraTo(0, 1);
             break;
           case document.querySelector(".Button2"):
             buttonGroup = ".ProjectsGroup";
-            gsap.to(root.position, {y: 0, duration: 1, overwrite: "auto"});
-            gsap.to(camera.position, {x: 0.15, y: 0.3, z: -1, duration: 1, overwrite: "auto"});
-            gsap.to(camera.rotation, {x: 0, duration: 1, overwrite: "auto"});
-            gsap.to(camera.rotation, {y: Math.PI, duration: 1, overwrite: "auto"});
-            gsap.to(laptopHinge.rotation, {x: Math.PI * 150 / 180, duration: 1, overwrite: "auto"});
-            spawnIcons();
+            scrollCameraTo(0.5, 1);
             break;
           case document.querySelector(".Button3"):
             buttonGroup = ".AboutGroup";
-            gsap.to(root.position, {y: -0.5, duration: 1, overwrite: "auto"});
-            gsap.to(laptopHinge.rotation, {x: 0, duration: 1, overwrite: "auto"});
-            removeIcons();
+            scrollCameraTo(1, 1);
+            break;
+          case document.querySelector(".Button4"):
+            iconGroupGroup.children[activeIconIndex].userData.video.pause();
+            gsap.to(iconGroupGroup.children[activeIconIndex].scale, {x: ICON_SCALE / 1.5, y: ICON_SCALE / 1.5, z: 1, duration: 0.5, overwrite: "auto"});
+            --activeIconIndex;
+            gsap.to(iconGroupGroup.children[activeIconIndex].scale, {x: ICON_SCALE, y: ICON_SCALE, z: 1, duration: 0.5, overwrite: "auto"});
+            document.querySelector(".VideoPlayer2").src = iconGroupGroup.children[activeIconIndex].userData.video.src;
+            document.querySelector(".VideoPlayer2").play();
+            iconGroupGroup.children[activeIconIndex].userData.video.play();
+            gsap.to(iconGroupGroup.position, {x: -iconGroupGroup.children[activeIconIndex].position.x, duration: 1, overwrite: "auto"});
+            document.querySelector(".ProjectTitleText").textContent = iconGroupGroup.children[activeIconIndex].userData.title;
+            document.querySelector(".ProjectDescriptionText").textContent = iconGroupGroup.children[activeIconIndex].userData.description;
+            break;
+          case document.querySelector(".Button5"):
+            diveIn(iconGroupGroup.children[activeIconIndex].userData.html);
+            break;
+          case document.querySelector(".Button6"):
+            iconGroupGroup.children[activeIconIndex].userData.video.pause();
+            gsap.to(iconGroupGroup.children[activeIconIndex].scale, {x: ICON_SCALE / 1.5, y: ICON_SCALE / 1.5, z: 1, duration: 0.5, overwrite: "auto"});
+            ++activeIconIndex;
+            gsap.to(iconGroupGroup.children[activeIconIndex].scale, {x: ICON_SCALE, y: ICON_SCALE, z: 1, duration: 0.5, overwrite: "auto"});
+            document.querySelector(".VideoPlayer2").src = iconGroupGroup.children[activeIconIndex].userData.video.src;
+            document.querySelector(".VideoPlayer2").play();
+            iconGroupGroup.children[activeIconIndex].userData.video.play();
+            gsap.to(iconGroupGroup.position, {x: -iconGroupGroup.children[activeIconIndex].position.x, duration: 1, overwrite: "auto"});
+            document.querySelector(".ProjectTitleText").textContent = iconGroupGroup.children[activeIconIndex].userData.title;
+            document.querySelector(".ProjectDescriptionText").textContent = iconGroupGroup.children[activeIconIndex].userData.description;
             break;
         }
-        [".HomeGroup", ".ProjectsGroup", ".AboutGroup"].forEach((element) => {
+        /*[".HomeGroup", ".ProjectsGroup", ".AboutGroup"].forEach((element) => {
           gsap.to(element, {opacity: element === buttonGroup ? 1 : 0, duration: 0.5, overwrite: "auto"});
-        });
+        });*/
         break;
       }
       case DOMHover === document.querySelector(".Filter1Div") && filterButtonsActive: {
@@ -508,37 +510,15 @@ window.addEventListener("mousedown", (event) => {
             .to(iconGroup.userData.iconOverlay.material, {opacity: 1, duration: 1, overwrite: "auto"}, "<")
             .to(iconGroup.userData.iconScreen.material.map.repeat, {x: iconGroup.userData.screenTextureRepeatX, y: 1, duration: 0.5, overwrite: "auto"}, "<")
             .to(iconGroup.userData.iconScreen.material.map.offset, {x: iconGroup.userData.screenTextureOffsetX, y: 0, duration: 0.5, overwrite: "auto"}, "<")
-            .to(iconGroup.userData.iconScreen.material, {opacity: 0.5, duration: 1, overwrite: "auto"}, "<").call(() => {
+            .to(iconGroup.userData.iconScreen.material, {opacity: 1, duration: 1, overwrite: "auto"}, "<").call(() => {
             animationLock = null;
           }, null, ">");
           document.body.style.cursor = "default";
           userLock = true;
           gsap.to(iconGroup.position, {x: 0, y: 0, z: 0, duration: 0.5, overwrite: "auto"});
           gsap.to(iconGroup.scale, {x: 0, y: 0, z: 0, duration: 0.5, overwrite: "auto"});
-          diveIn();
-
-          if (monitorPowered) {
-            const homeSection = document.querySelector(".HomeSection");
-            const aboutSection = document.querySelector(".AboutSection");
-            const slotSection = document.querySelector(".SlotSection");
-            gsap.to(homeSection, {opacity: 0, duration: 1});
-            gsap.to(aboutSection, {opacity: 0, duration: 1});
-            gsap.to(slotSection, {opacity: 1, duration: 1});
-          }
-          else {
-            const color2 = new THREE.Color(0xff0000);
-            gsap.to(monitorButton.material.color, {r: color2.r, g: color2.g, b: color2.b, duration: 0.2, overwrite: "auto"});
-          }
-          dragging = iconGroup;
+          diveIn(iconGroup.userData.html);
           break;
-        case raycastResult.name === "MonitorButton":
-          monitorToggle();
-          break;
-      }
-      if (dragging) {
-        plane.setFromNormalAndCoplanarPoint(camera.getWorldDirection(new THREE.Vector3()).clone(), dragging.position);
-        raycaster.ray.intersectPlane(plane, intersection);
-        offset.copy(intersection).sub(dragging.position);
       }
     }
   }
@@ -576,13 +556,16 @@ function resize() {
     newWidth = screenSize.width;
     newHeight = screenSize.width / targetAspect;
   }
-  cameraWrapper.centeredDiv.style.width = `${newWidth}px`;
-  cameraWrapper.centeredDiv.style.height = `${newHeight}px`;
-  cameraWrapper.centeredDiv.style.fontSize = `${newWidth / DEFAULT_FONT_SIZE}px`;
+  cameraWrapper.centeredTopDiv.style.width = `${newWidth}px`;
+  cameraWrapper.centeredTopDiv.style.height = `${newHeight}px`;
+  cameraWrapper.centeredTopDiv.style.fontSize = `${newWidth / DEFAULT_FONT_SIZE}px`;
+  cameraWrapper.centeredBottomDiv.style.width = `${newWidth}px`;
+  cameraWrapper.centeredBottomDiv.style.height = `${newHeight}px`;
+  cameraWrapper.centeredBottomDiv.style.fontSize = `${newWidth / DEFAULT_FONT_SIZE}px`;
 
   divPositionMultiplier = newWidth * MAGIC_DIV_OFFSET;
 
-  const divRect = cameraWrapper.centeredDiv.getBoundingClientRect();
+  const divRect = cameraWrapper.centeredTopDiv.getBoundingClientRect();
 
   canvas.style.width = `${divRect.width}px`;
   canvas.style.height = `${divRect.height}px`;
@@ -599,10 +582,10 @@ function getMouseWorldPosition() {
   return lookIntersection.clone();
 }
 
-/*function scrollTrigger() {
+function scrollTrigger() {
 
-  const cameraPositionNormalized = Math.min(1, Math.max(0, -camera.position.y / MAX_SCROLL));
-
+  cameraPositionNormalized = Math.min(1, Math.max(0, -dummyScroll.y / MAX_SCROLL));
+/*
   //PORTFOLIO BUTTON TEXT
   const portfolioButtonTextDiv = document.querySelector(".PortfolioButtonTextDiv");
   const portfolioButtonTextStart = 0.4;
@@ -625,10 +608,10 @@ function getMouseWorldPosition() {
     case cameraPositionNormalized < portfolioButtonDivStart: portfolioButtonDivState = 0; break;
     case cameraPositionNormalized > portfolioButtonDivEnd: portfolioButtonDivState = 1; break;
   }
-  portfolioButtonDiv.style.width = `${(portfolioButtonDivState * 18.5) + 30}%`;
+  portfolioButtonDiv.style.width = `${(portfolioButtonDivState * 18.5) + 30}%`;*/
 
   //ICON BUTTON
-  const homeButtonDiv = document.querySelector(".HomeButtonDiv");
+  /*const homeButtonDiv = document.querySelector(".HomeButtonDiv");
   const aboutButtonDiv = document.querySelector(".AboutButtonDiv");
   const homeButtonIconStart = 0.3;
   const homeButtonIconEnd = 0.5;
@@ -639,32 +622,106 @@ function getMouseWorldPosition() {
   }
   homeButtonDiv.style.opacity = homeButtonIconState;
   portfolioButtonActive = portfolioButtonDivState < 0.1;
-  aboutButtonDiv.style.opacity = homeButtonIconState;
+  aboutButtonDiv.style.opacity = homeButtonIconState;*/
 
   //FILTER BUTTONS
-  const filterTextDivDiv = document.querySelector(".FilterDivDiv");
-  const filterTextDivDivStart = 0.5;
-  const filterTextDivDivEnd = 0.8;
+  const filterTextDivDivStart = 0.3;
+  const filterTextDivDivEnd = 0.5;
   let filterTextDivDivState = (cameraPositionNormalized - filterTextDivDivStart) / (filterTextDivDivEnd - filterTextDivDivStart);
   switch (true) {
     case cameraPositionNormalized < filterTextDivDivStart: filterTextDivDivState = 0; break;
     case cameraPositionNormalized > filterTextDivDivEnd: filterTextDivDivState = 1; break;
   }
-  filterTextDivDiv.style.opacity = filterTextDivDivState;
-  filterTextDivDiv.style.filter = `blur(${(1 - filterTextDivDivState) * 5}vh)`;
-  filterButtonsActive = filterTextDivDivState === 1;
+  document.querySelectorAll(".ProjectsGroup").forEach((element) => {
+    //element.style.opacity = filterTextDivDivState;
+    //element.style.filter = `blur(${(1 - filterTextDivDivState) * 5}vh)`;
+  });
 
   //GLASS OPACITY
   const iconScreenStart = 0.3;
-  const iconScreenEnd = 0.8;
+  const iconScreenEnd = 0.4;
   let iconScreenState = (iconScreenEnd - cameraPositionNormalized) / (iconScreenEnd - iconScreenStart);
   switch (true) {
     case cameraPositionNormalized < iconScreenStart: iconScreenState = 1; break;
     case cameraPositionNormalized > iconScreenEnd: iconScreenState = 0; break;
   }
-  glassMaterial.opacity = iconScreenState / 2 + 0.3;
+  glassMaterial.opacity = iconScreenState / 2;
 
-  if (filterButtonsActive && filterButtonHover && !dragging && !userLock) {
+  //LAPTOP GLOW
+  const laptopGlowStart = 0;
+  const laptopGlowEnd = 0.4;
+  let laptopGlowState = (laptopGlowEnd - cameraPositionNormalized) / (laptopGlowEnd - laptopGlowStart);
+  switch (true) {
+    case cameraPositionNormalized < laptopGlowStart: laptopGlowState = 1; break;
+    case cameraPositionNormalized > laptopGlowEnd: laptopGlowState = 0; break;
+  }
+  gsap.set(".VideoPlayer1", {opacity: laptopGlowState, overwrite: "auto"});
+
+  //LAPTOP HINGE
+  //region
+  const hingeStart = 0;
+  const hingeEnd = 0.2;
+  let hingeState = (hingeEnd - cameraPositionNormalized) / (hingeEnd - hingeStart);
+  switch (true) {
+    case cameraPositionNormalized < hingeStart: hingeState = 1; break;
+    case cameraPositionNormalized > hingeEnd: hingeState = 0; break;
+  }
+  laptopHinge.rotation.x = hingeState * Math.PI * 115 / 180;
+  //endregion
+
+  //TITLE FRAME
+  //region
+  const titleStart = 0.2;
+  const titleEnd = 0.4;
+  let titleState = (titleEnd - cameraPositionNormalized) / (titleEnd - titleStart);
+  switch (true) {
+    case cameraPositionNormalized < titleStart: titleState = 1; break;
+    case cameraPositionNormalized > titleEnd: titleState = 0; break;
+  }
+  gsap.set(".TitleFrameDiv", {opacity: titleState, overwrite: "auto"});
+  //endregion
+
+  //CUBE
+  const cubeStart = 0.2;
+  const cubeEnd = 0.4;
+  let cubeState = (cameraPositionNormalized - cubeStart) / (cubeEnd - cubeStart);
+  switch (true) {
+    case cameraPositionNormalized < cubeStart: cubeState = 0; break;
+    case cameraPositionNormalized > cubeEnd: cubeState = 1; break;
+  }
+  gsap.set(root.position, {y: -cubeState - 0.1, overwrite: "auto"});
+
+  //ICONS
+  switch (true) {
+    case cameraPositionNormalized < 0.3 || cameraPositionNormalized > 0.6:
+      if (projectsFrameActive) {
+        printDebug("projectsFrameActive set to false (~703)");
+        removeIcons();
+        projectsFrameActive = false;
+        gsap.to(".ProjectsGroup", {opacity: 0, filter: "blur(1vh)", duration: 0.5, overwrite: "auto"});
+      }
+      break;
+    case cameraPositionNormalized > 0.3:
+      if (!projectsFrameActive) {
+        printDebug("projectsFrameActive set to true (~710)");
+        spawnIcons();
+        projectsFrameActive = true;
+        gsap.to(".ProjectsGroup", {opacity: 1, filter: "blur(0vh)", duration: 0.5, overwrite: "auto"});
+      }
+      break;
+  }
+
+  //ABOUT FRAME
+  const aboutStart = 0.8;
+  const aboutEnd = 1;
+  let aboutState = (cameraPositionNormalized - aboutStart) / (aboutEnd - aboutStart);
+  switch (true) {
+    case cameraPositionNormalized < aboutStart: aboutState = 0; break;
+    case cameraPositionNormalized > aboutEnd: aboutState = 1; break;
+  }
+  gsap.set(".AboutFrameDiv", {opacity: aboutState, overwrite: "auto"});
+
+  /*if (filterButtonsActive && filterButtonHover && !dragging && !userLock) {
     document.body.style.cursor = "pointer";
     gsap.to(filterButtonHover, {backgroundColor: "rgba(255, 255, 255, 0.1)", ease: "back", duration: 0.2, overwrite: "auto"});
   }
@@ -681,53 +738,38 @@ function getMouseWorldPosition() {
   if (!filterButtonsActive && !portfolioButtonActive && filterButtonHover && !dragging && !userLock) {
     document.body.style.cursor = "default";
     gsap.to(filterButtonHover, {backgroundColor: "rgba(255, 255, 255, 0.05)", ease: "back", duration: 0.2, overwrite: "auto"});
-  }
-}*/
+  }*/
+}
 
-/*function scrollCameraBy(deltaY, duration) {
-  cameraWrapper.centeredDiv.style.willChange = "transform";
-  const afterScroll = cameraWrapper.camera.position.y - deltaY;
+function scrollCameraBy(deltaY, duration) {
+  //cameraWrapper.centeredTopDiv.style.willChange = "transform";
+  //cameraWrapper.centeredBottomDiv.style.willChange = "transform";
+  const afterScroll = dummyScroll.y - deltaY;
   if (afterScroll >= 0) {
-    gsap.to(cameraWrapper.camera.position, {y: 0, duration: duration, overwrite: true, onUpdate: scrollTrigger});
-    gsap.to(cameraWrapper.centeredDiv, {y: 0, duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredDiv.style.willChange = "auto"}});
+    gsap.to(dummyScroll, {y: 0, duration: duration, overwrite: true, onUpdate: scrollTrigger});
+    //gsap.to(cameraWrapper.centeredTopDiv, {y: 0, duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredTopDiv.style.willChange = "auto"}});
+    //gsap.to(cameraWrapper.centeredBottomDiv, {y: 0, duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredBottomDiv.style.willChange = "auto"}});
+
   }
   else if (afterScroll <= -MAX_SCROLL) {
-    gsap.to(cameraWrapper.camera.position, {y: -MAX_SCROLL, duration: duration, overwrite: true, onUpdate: scrollTrigger});
-    gsap.to(cameraWrapper.centeredDiv, {y: -MAX_SCROLL * divPositionMultiplier * gsap.getProperty(cameraWrapper.centeredDiv, "scale"), duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredDiv.style.willChange = "auto"}});
+    gsap.to(dummyScroll, {y: -MAX_SCROLL, duration: duration, overwrite: true, onUpdate: scrollTrigger});
+    //gsap.to(cameraWrapper.centeredTopDiv, {y: -MAX_SCROLL * divPositionMultiplier * gsap.getProperty(cameraWrapper.centeredTopDiv, "scale"), duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredTopDiv.style.willChange = "auto"}});
+    //gsap.to(cameraWrapper.centeredBottomDiv, {y: -MAX_SCROLL * divPositionMultiplier * gsap.getProperty(cameraWrapper.centeredBottomDiv, "scale"), duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredBottomDiv.style.willChange = "auto"}});
   }
   else {
-    gsap.to(cameraWrapper.camera.position, {y: `-=${deltaY}`, duration: duration, overwrite: true, onUpdate: scrollTrigger});
-    gsap.to(cameraWrapper.centeredDiv, {y: `-=${deltaY * divPositionMultiplier * gsap.getProperty(cameraWrapper.centeredDiv, "scale")}`, duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredDiv.style.willChange = "auto"}});
+    gsap.to(dummyScroll, {y: `-=${deltaY}`, duration: duration, overwrite: true, onUpdate: scrollTrigger});
+    //gsap.to(cameraWrapper.centeredTopDiv, {y: `-=${deltaY * divPositionMultiplier * gsap.getProperty(cameraWrapper.centeredTopDiv, "scale")}`, duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredTopDiv.style.willChange = "auto"}});
+    //gsap.to(cameraWrapper.centeredBottomDiv, {y: `-=${deltaY * divPositionMultiplier * gsap.getProperty(cameraWrapper.centeredBottomDiv, "scale")}`, duration: duration, overwrite: true, onComplete: () => {cameraWrapper.centeredBottomDiv.style.willChange = "auto"}});
   }
-}*/
+}
 
-/*function scrollCameraTo(Y, duration) {
-  cameraWrapper.centeredDiv.style.willChange = "transform";
-  gsap.to(cameraWrapper.camera.position, {y: Y, duration: duration, overwrite: "auto", onUpdate: scrollTrigger});
-  gsap.to(cameraWrapper.centeredDiv, {y: Y * divPositionMultiplier, duration: duration, overwrite: "auto", onComplete: () => {cameraWrapper.centeredDiv.style.willChange = "auto"}});
-}*/
-
-/*function scrollMonitorBy(deltaY, duration, boolean) {
-  if (boolean && deltaY > 0) {
-    scrollingDiscovered = true;
-    clearInterval(scrollShowInterval);
-    scrollShowInterval = null;
-  }
-  cameraWrapper.scrollDiv.style.willChange = "transform";
-  const afterScroll = cameraWrapper.scrollDiv.offsetTop / cameraWrapper.scrollDiv.parentElement.clientHeight * -100 + deltaY;
-  if (afterScroll <= 0) {
-    gsap.to(cameraWrapper.scrollDiv, {top: "0%", duration: duration, overwrite: "auto", onComplete: () => {cameraWrapper.scrollDiv.style.willChange = "auto"}});
-    gsap.to(cameraWrapper.faceForegroundImage, {top: "71%", width: "30%", duration: duration, overwrite: "auto"});
-  }
-  else if (afterScroll >= 100) {
-    gsap.to(cameraWrapper.scrollDiv, {top: "-100%", duration: duration, overwrite: "auto", onComplete: () => {cameraWrapper.scrollDiv.style.willChange = "auto"}});
-    gsap.to(cameraWrapper.faceForegroundImage, {top: "46%", width: "35%", duration: duration, overwrite: "auto"});
-  }
-  else {
-    gsap.to(cameraWrapper.scrollDiv, {top: `-=${deltaY}%`, duration: duration, overwrite: "auto", onComplete: () => {cameraWrapper.scrollDiv.style.willChange = "auto"}});
-    gsap.to(cameraWrapper.faceForegroundImage, {top: `-=${deltaY / 4}%`, width: `+=${deltaY / 20}%`, duration: duration, overwrite: "auto"});
-  }
-}*/
+function scrollCameraTo(Y, duration) {
+  //cameraWrapper.centeredTopDiv.style.willChange = "transform";
+  //cameraWrapper.centeredBottomDiv.style.willChange = "transform";
+  gsap.to(dummyScroll, {y: -Y, duration: duration, overwrite: "auto", onUpdate: scrollTrigger});
+  //gsap.to(cameraWrapper.centeredTopDiv, {y: Y * divPositionMultiplier, duration: duration, overwrite: "auto", onComplete: () => {cameraWrapper.centeredTopDiv.style.willChange = "auto"}});
+  //gsap.to(cameraWrapper.centeredBottomDiv, {y: Y * divPositionMultiplier, duration: duration, overwrite: "auto", onComplete: () => {cameraWrapper.centeredBottomDiv.style.willChange = "auto"}});
+}
 
 let s = 1;
 let lastScale = 1;
@@ -743,9 +785,8 @@ function zoomCameraTo(scrollZ, duration, boolean) {
   });
 }
 
-function diveIn() {
-  zoomCameraTo(-0.35, 2, true)
-  setTimeout(() => location.assign("pjc.html"), 2000);
+function diveIn(html) {
+  setTimeout(() => location.assign(`${html}.html`), 2000);
 }
 
 function randomizePosition(object, minX, maxX, minY, maxY, minZ, maxZ) {
@@ -833,10 +874,8 @@ function spawnIcons(boolean) {
       });
     });
   }
-  iconGroupGroup.rotation.x = ICON_ROTATION;
   scene.add(iconGroupGroup);
 }
-
 function spawnIconsHelper(boolean) {
   const iconGroupSpawnerCurrentPosition = ICON_GROUP_SPAWNER_INITIAL_POSITION.clone();
   iconArray.forEach((iconGroup) => {
@@ -850,26 +889,21 @@ function spawnIconsHelper(boolean) {
           document.body.style.cursor = "pointer";
           gsap.to(DOMHover, {backgroundColor: "rgba(255, 255, 255, 0.1)", ease: "back", duration: 0.2});
         }
-        if (iconGroupSpawnerCurrentPosition.x <= ICON_GROUP_SPAWNER_INITIAL_POSITION.x - (ICON_GAP_HORIZONTAL * 3)) {
-          iconGroupSpawnerCurrentPosition.y -= ICON_GAP_VERTICAL - 0.001;
-          iconGroupSpawnerCurrentPosition.x = ICON_GROUP_SPAWNER_INITIAL_POSITION.x;
-        }
         iconGroup.object.position.copy(iconGroupSpawnerCurrentPosition);
         iconGroup.originalPosition = iconGroup.object.position.clone();
         iconGroupSpawnerCurrentPosition.x -= ICON_GAP_HORIZONTAL;
         iconGroupGroup.add(iconGroup.object);
         iconGroup.object.rotation.z = Math.PI / 4;
-        gsap.to(iconGroup.object.rotation, {x: ICON_ROTATION, y: 0, z: 0, duration: 0.3, ease: "back", overwrite: "auto"})
-        gsap.to(iconGroup.object.scale, {x: ICON_SCALE, y: ICON_SCALE, z: 1, duration: 0.5, ease: "back(0.5)", overwrite: "auto"});
+        gsap.to(iconGroup.object.rotation, {x: 0, y: 0, z: 0, duration: 0.3, ease: "back", overwrite: "auto"});
+        gsap.to(iconGroup.object.scale, {x: ICON_SCALE / 1.5, y: ICON_SCALE / 1.5, z: 1, duration: 0.5, ease: "back(0.5)", overwrite: "auto"});
+        gsap.to(iconGroupGroup.children[activeIconIndex].scale, {x: ICON_SCALE, y: ICON_SCALE, z: 1, duration: 0.5, ease: "back(0.5)", overwrite: "auto"});
       }
     });
   });
-  if (!iconGroupGroup.children.length) {
-    if (!boolean)
-      filterButtonsActive = true;
-    if (DOMHover)
-      document.body.style.cursor = "pointer";
-  }
+  gsap.set(iconGroupGroup.position, {x: -iconGroupGroup.children[activeIconIndex].position.x, overwrite: "auto"});
+  document.querySelector(".ProjectTitleText").textContent = iconGroupGroup.children[activeIconIndex].userData.title;
+  document.querySelector(".ProjectDescriptionText").textContent = iconGroupGroup.children[activeIconIndex].userData.description;
+  document.querySelector(".VideoPlayer2").src = iconGroupGroup.children[activeIconIndex].userData.video.src;
 }
 
 function removeIcons() {
@@ -884,26 +918,26 @@ function removeIcons() {
 }
 
 function onLoad() {
-  gsap.set(cameraWrapper.centeredDiv, {xPercent: -50, yPercent: -50, y: 0});
-  gsap.to(".LoadingDiv", {opacity: 0, duration: 4});
+  scrollTrigger();
+  gsap.set(cameraWrapper.camera.position, {z: -1, overwrite: "auto"});
+  gsap.set(cameraWrapper.camera.rotation, {y: Math.PI, overwrite: "auto"});
+  gsap.set(cameraWrapper.centeredTopDiv, {xPercent: -50, yPercent: -50, y: 0, overwrite: "auto"});
+  gsap.set(cameraWrapper.centeredBottomDiv, {xPercent: -50, yPercent: -50, y: 0, overwrite: "auto"});
+  gsap.to(".LoadingDiv", {opacity: 0, duration: 4, overwrite: "auto"});
+  gsap.set(root.position, {x: -0.2, y: -0.1, z: 0.2, overwrite: "auto"});
+  gsap.set(root.rotation, {y: Math.PI * 210 / 180, overwrite: "auto"});
+  gsap.set(root.rotation, {x: Math.PI * 170 / 180, overwrite: "auto"});
   document.querySelector(".BackgroundVideo").src = "https://PortfolioPullZone.b-cdn.net/LandingPage/BackgroundStrip.webm";
   laptopVideo.src = playlist[0];
   laptopVideo.play();
   videoPlayer1.src = playlist[0];
   videoPlayer1.play();
-  iconArray.forEach((child) => {child.video.play()});
-  /*if (screenSize.width / screenSize.height > 16 / 9) {
-    zoomCameraTo(-1.2, 0);
-    zoomCameraTo(-0.9, 2);
-  }
-  else {
-    zoomCameraTo(-0.9 * (screenSize.height / screenSize.width * 16 / 9) * 1.2, 0);
-    zoomCameraTo(-0.9 * (screenSize.height / screenSize.width * 16 / 9), 2);
-  }*/
+  iconArray.forEach((child) => {child.video.play(); setTimeout(() => {child.video.pause()}, 1000)});
   finishedLoading = true;
   setTimeout(() => {
     userLock = false;
-    gsap.set(".LoadingDiv", {pointerEvents: "none", overwrite: "auto"})}, 2000);
+    gsap.set(".LoadingDiv", {pointerEvents: "none", overwrite: "auto"})}, 2000
+  );
 }
 
 function printDebug(log) {
@@ -912,12 +946,14 @@ function printDebug(log) {
 }
 
 class Icon {
-  constructor(type, videoPath, title, description, tags = [], bakedOverlayTexture) {
+  constructor(type, videoPath, title, description, tags = [], html, bakedOverlayTexture) {
     this.type = type;
+    this.title = title;
+    this.description = description;
+    this.html = html;
     this.originalPosition = new THREE.Vector3();
     this.object = iconComponentGroup.clone();
     this.object.scale.set(ICON_SCALE, ICON_SCALE, 1);
-    this.object.rotation.x = ICON_ROTATION;
     this.object.userData = this;
     this.iconHitbox = this.object.children.find((child) => child.name === "IconHitbox");
     this.iconGlow = this.object.children.find((child) => child.name === "IconGlow");
@@ -944,7 +980,7 @@ class Icon {
       this.videoTexture.wrapS = THREE.RepeatWrapping;
       this.videoTexture.wrapT = THREE.RepeatWrapping;
       this.videoTexture.generateMipmaps = false;
-      this.iconScreen.material = new THREE.MeshBasicMaterial({map: this.videoTexture, opacity: 0.5, transparent: true, side: THREE.DoubleSide});
+      this.iconScreen.material = new THREE.MeshBasicMaterial({map: this.videoTexture});
       this.aspectRatio = this.video.videoWidth / this.video.videoHeight;
       this.screenTextureRepeatX = 1 / this.aspectRatio;
       this.screenTextureOffsetX = (1 - 1 / this.aspectRatio) / 2;
@@ -1057,12 +1093,14 @@ class Icon {
         finalCompCanvas.getContext("2d").drawImage(backgroundCompCanvas, 0, 0);
         finalCompCanvas.getContext("2d").drawImage(borderCompCanvas, 0, 0);
 
-        const link = document.createElement("a");
-        link.href = finalCompCanvas.toDataURL("image/png");
-        link.download = title;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        if (EXPORT_TEXTURES) {
+          const link = document.createElement("a");
+          link.href = finalCompCanvas.toDataURL("image/png");
+          link.download = title;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
 
         backgroundCanvas = null;
         textCanvas = null;
@@ -1105,7 +1143,7 @@ class Icon {
 // region
 
 const laptopVideo = document.createElement("video");
-const videoPlayer1 = document.querySelector(".VideoPlayer1")
+const videoPlayer1 = document.querySelector(".VideoPlayer1");
 laptopVideo.crossOrigin = "anonymous";
 laptopVideo.preload = "auto";
 laptopVideo.muted = true;
@@ -1189,7 +1227,6 @@ document.querySelectorAll(".LogoDiv")[1].addEventListener("click", () => {
 //region
 [document.querySelector(".Filter1Div"), document.querySelector(".Filter2Div"), document.querySelector(".Filter3Div")].forEach((button) => {
   button.addEventListener("mouseenter", () => {
-    console.log("ASD");
     DOMHover = button;
     if (filterButtonsActive && !dragging && !userLock) {
       document.body.style.cursor = "pointer";
@@ -1203,6 +1240,16 @@ document.querySelectorAll(".LogoDiv")[1].addEventListener("click", () => {
     }
   });
 });
+document.querySelectorAll(".MainButton").forEach((button) => {
+  button.addEventListener("mouseenter", () => {
+    gsap.to(button, {duration: 0.6, y: -6, scale: 1.02, boxShadow:"0 0 10px rgba(255,255,255,0.9), inset 2px 2px 0 rgba(255,255,255,0.2)", overwrite: "auto"});
+  });
+});
+document.querySelectorAll(".MainButton").forEach((button) => {
+  button.addEventListener("mouseleave", () => {
+    gsap.to(button, {duration: 1, y: 0, scale: 1, boxShadow:"0 0 50px rgba(0,0,0,0.9s), inset 2px 2px 0 rgba(255,255,255,0.2)", overwrite: "auto"});
+  });
+});
 
 document.querySelectorAll(".MainButton").forEach((button) => {
   button.addEventListener("mouseenter", () => {DOMHover = button;});
@@ -1213,10 +1260,3 @@ document.querySelectorAll(".MainButton").forEach((button) => {
 //endregion
 
 resize();
-//scrollTrigger();
-
-/*
-gsap.to(camera.position, {x: 0, y: 0.14, z: -0.5, duration: 1, overwrite: "auto"});
-gsap.to(camera.rotation, {x: 0, duration: 1, overwrite: "auto"});
-gsap.to(camera.rotation, {y: Math.PI, duration: 1, overwrite: "auto"});
-gsap.to(laptopHinge.rotation, {x: Math.PI / 2, duration: 1, overwrite: "auto"});*/
