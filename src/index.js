@@ -13,25 +13,30 @@ let iconParameters = [
   [projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/KineticRush4.webm", "Kinetic Rush", "A running-themed community challenge", ["blender", "css", "photoshop"], "pjc"],
   [projectType.TECHNICAL_ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 2", "Description 2", ["blender", "js"], "pjc2"],
   [projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 3", "Description 3", ["aftereffects"], "pjc2"],
-  [projectType.PROGRAMMING, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"], "pjc2"]
+  [projectType.ART, "https://PortfolioPullZone.b-cdn.net/LandingPage/Icons/ChasmsCall4.webm", "Project 4", "Description 4", ["css"], "pjc2"]
 ];
 
 //CONSTANTS
 //region
 //VERY IMPORTANT
-const BAKE_ICON_OVERLAY = false;
+const BAKE_ICON_OVERLAY = true;
 const EXPORT_TEXTURES = false;
 printDebug(BAKE_ICON_OVERLAY ? "Baking textures..." : "Skipped baking textures!");
 
-//const mobileUser = "ontouchstart" in window || navigator.maxTouchPoints > 0;
-const mobileUser = false;
+//const
+//MOBILE_USER = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+const MOBILE_USER = false;
 const MAIN_COLOR_NORMALIZED = new THREE.Color(0x9EDFFF);
 const MAGIC_DIV_OFFSET = 0.96;
 const MAX_SCROLL = 1;
 const DEFAULT_FONT_SIZE = 15;
-const ICON_GROUP_SPAWNER_INITIAL_POSITION = new THREE.Vector3(0, 0.08, 0);
+const ICON_GROUP_SPAWNER_INITIAL_POSITION = new THREE.Vector3(0, 0, 0);
 const ICON_GAP_HORIZONTAL = 0.175;
 const ICON_SCALE = 2;
+const CUBE_Y_OFFSET = -0.023985;
+const CUBE_Z_OFFSET = 0.138446;
+const ROOT_START_POSITION = new THREE.Vector3(-0.15, -0.022 + CUBE_Y_OFFSET, -0.25 + CUBE_Z_OFFSET);
+const ROOT_START_ROTATION = new THREE.Euler(Math.PI * 170 / 180, Math.PI * 210 / 180, Math.PI);
 //endregion
 
 //THREE JS SETUP
@@ -59,7 +64,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setAnimationLoop(render);
 const loaderManager = new THREE.LoadingManager(() => {
-  if (!mobileUser) {
+  if (!MOBILE_USER) {
     renderer.compile(scene, camera);
     onLoad();
     printDebug("Finished loading");
@@ -118,6 +123,20 @@ const glassMaterial = new THREE.MeshBasicMaterial({
   transparent: true,
   opacity: 0.6,
 });
+const laptopVideo = document.createElement("video");
+laptopVideo.crossOrigin = "anonymous";
+laptopVideo.preload = "auto";
+laptopVideo.muted = true;
+laptopVideo.playsInline = true;
+const laptopScreenTexture = new THREE.VideoTexture(laptopVideo);
+laptopScreenTexture.flipY = false;
+laptopScreenTexture.colorSpace = THREE.SRGBColorSpace;
+laptopScreenTexture.minFilter = THREE.LinearFilter;
+laptopScreenTexture.magFilter = THREE.LinearFilter;
+laptopScreenTexture.wrapS = THREE.RepeatWrapping;
+laptopScreenTexture.wrapT = THREE.RepeatWrapping;
+laptopScreenTexture.repeat = new THREE.Vector2(1, 1);
+laptopScreenTexture.generateMipmaps = false;
 //endregion
 
 //SCENE
@@ -149,10 +168,15 @@ loader.load("LandingPage/Models/Scene.glb", (glb) => {
         laptopHinge = child;
         break;
       case child.name === "LaptopDisplay":
-        child.material = new THREE.MeshBasicMaterial({map: textureBake});
+        child.material = new THREE.MeshBasicMaterial({map: textureBake, side: THREE.DoubleSide});
         laptopDisplay = child;
         break;
+      case child.name === "LaptopLetterboxing":
+        child.material = new THREE.MeshBasicMaterial({color: 0x080808});
+        laptopScreen = child;
+        break;
       case child.name === "LaptopScreen":
+        child.material = new THREE.MeshBasicMaterial({map: laptopScreenTexture, opacity: 0.8, transparent: true});
         laptopScreen = child;
         break;
     }
@@ -181,9 +205,9 @@ const h2cTags = {
   premierepro: document.querySelector(".h2cPREMIEREPRODiv"),
   photoshop: document.querySelector(".h2cPHOTOSHOPDiv")
 };
-Object.values(h2cTags).forEach((tag) => {
+/*Object.values(h2cTags).forEach((tag) => {
   tag.style.opacity = 0;
-});
+});*/
 
 //SPAWN ASSETS
 loader.load("LandingPage/Models/AssetsCompressed.glb", (glb) => {
@@ -215,7 +239,7 @@ loader.load("LandingPage/Models/AssetsCompressed.glb", (glb) => {
   });
 
   //SETUP ASSETS
-  if (!mobileUser) {
+  if (!MOBILE_USER) {
     loadIcons(iconParameters).then(() => {spawnIcons(true); removeIcons();});
   }
 
@@ -261,9 +285,34 @@ let portfolioButtonActive = true;
 
 let filterButtonsActive = false;
 
-let projectsFrameActive = false;
+const Sections = {
+  START: "Start",
+  HOME: "Home",
+  TRANSITION1: "Transition1",
+  PROJECTS: "Projects",
+  ABOUT: "About"
+};
+let activeSection = null;
 
 let activeIconIndex = 0;
+
+const scrollYWrapper = {y: 0};
+
+let relativeRootPosition = new THREE.Vector3();
+let relativeRootRotation = new THREE.Euler();
+
+const mouseScreenPosition = {
+  x: null,
+  y: null
+};
+
+let clickedDOM = null;
+
+const DOMIconGlowWrapper = {
+  activeIndex: 0,
+  1: document.querySelector(".IconGlow1"),
+  2: document.querySelector(".IconGlow2")
+}
 
 const backgroundVideo = document.querySelector(".BackgroundVideo");
 const backgroundCanvas1 = document.querySelector(".BackgroundCanvas1");
@@ -286,6 +335,16 @@ function render() {
   if (!userLock) {
     raycaster.setFromCamera(pointer, camera);
     const raycast = raycaster.intersectObjects(raycastTargetArray, true);
+
+    if (clickedDOM === document.querySelector(".ScrollBarDiv") && mouseDown) {
+      const rect = document.querySelector(".ScrollBarDiv").getBoundingClientRect();
+      const button = document.querySelector(".ScrollButton").getBoundingClientRect();
+      const offsetY = mouseScreenPosition.y - rect.top - button.height / 2;
+      let percentY = offsetY / (rect.height - button.height);
+      percentY = Math.min(Math.max(percentY, 0), 1);
+      scrollCameraTo(percentY, 0);
+    }
+
     if (raycast.length) {
       raycastResult = raycast[0].object;
       switch (true) {
@@ -325,7 +384,6 @@ function render() {
             .to(iconGroup.userData.iconScreen.material, {opacity: 1, duration: 0.5, overwrite: "auto"}, "<").call(() => {
               animationLock = null;
             }, null, ">")
-            .to(iconGroup.userData.iconOverlay.material, {opacity: 1, duration: 1, overwrite: "auto"}, "<")
             .to(iconGroup.position, {z: iconGroup.userData.originalPosition.z, duration: 0.25, overwrite: "auto"}, "<");
             break;
           case previousRaycastResult.name === "MonitorButton" && monitorPowered:
@@ -351,7 +409,6 @@ function render() {
             })
             .to(iconGroup.position, {z: -0.15, duration: 0.5, overwrite: "auto"}, ">")
             .to(iconGroup.userData.iconScreen.material, {opacity: 1, duration: 1, overwrite: "auto"}, "<")
-            .to(iconGroup.userData.iconOverlay.material, {opacity: 0, duration: 0.1, overwrite: "auto"}, "<")
             .to(iconGroup.userData.iconHover.material, {opacity: 0, duration: 0.1, overwrite: "auto"}, "<")
             .to(iconGroup.scale, {x: ICON_SCALE * iconGroup.userData.aspectRatio, duration: 1, overwrite: "auto"}, ">")
             .to(iconGroup.userData.iconScreen.material.map.repeat, {x: 1, y: 1, duration: 1, overwrite: "auto"}, "<")
@@ -369,15 +426,15 @@ function render() {
   lastFrameTime = now;
   gsap.set(".Debug1", {innerHTML: `fps ${Math.floor(fps)}` +
   `<br>DOMHover ${DOMHover ? DOMHover.className : DOMHover}` +
+  `<br>clickedDOM ${clickedDOM ? clickedDOM.className : clickedDOM}` +
   `<br>raycastResult ${raycastResult ? `${raycastResult.name} ${raycastResult.id}` : raycastResult}` +
   `<br>previousRaycastResult ${previousRaycastResult ? `${previousRaycastResult.name} ${previousRaycastResult.id}` : previousRaycastResult}` +
   `<br>animationLock ${animationLock ? `${animationLock.name} ${animationLock.id}` : animationLock}` +
   `<br>userLock ${userLock}` +
-  `<br>cameraPositionY ${camera.position.y}` +
   `<br>scrollYWrapper.y ${scrollYWrapper.y.toFixed(2)}` +
   `<br>activeIconIndex ${activeIconIndex}` +
   `<br>activeIcon ${iconGroupGroup.children.length ? `${iconGroupGroup.children[activeIconIndex].name} ${iconGroupGroup.children[activeIconIndex].id}` : "null"}` +
-  `<br>projectsFrameActive ${projectsFrameActive}`});
+  `<br>activeSection ${activeSection}`});
 
   renderer.render(scene, camera);
 
@@ -387,12 +444,14 @@ function render() {
 //endregion
 
 window.addEventListener("wheel", (event) => {
-  scrollCameraBy(event.deltaY * 0.0005, 0.5);
+  scrollCameraBy(event.deltaY * 0.0003, 0.5);
 });
 
 window.addEventListener("mousemove", (event) => {
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  mouseScreenPosition.x = event.clientX;
+  mouseScreenPosition.y = event.clientY;
 });
 
 window.addEventListener("mousedown", (event) => {
@@ -400,33 +459,30 @@ window.addEventListener("mousedown", (event) => {
   if (!userLock) {
     mouseDown = true;
 
+    if (DOMHover)
+      clickedDOM = DOMHover;
     switch (true) {
       case DOMHover && DOMHover.className.includes("MainButton"): {
-        let buttonGroup = null;
         switch (DOMHover) {
           case document.querySelector(".Button1"):
-            buttonGroup = ".HomeGroup";
-            scrollCameraTo(0, 1);
+            scrollCameraTo(0, 2);
             break;
           case document.querySelector(".Button2"):
-            buttonGroup = ".ProjectsGroup";
-            scrollCameraTo(0.5, 1);
+            scrollCameraTo(0.4, 2);
             break;
           case document.querySelector(".Button3"):
-            buttonGroup = ".AboutGroup";
-            scrollCameraTo(1, 1);
+            scrollCameraTo(0.7, 2);
             break;
           case document.querySelector(".Button4"):
             iconGroupGroup.children[activeIconIndex].userData.video.pause();
             gsap.to(iconGroupGroup.children[activeIconIndex].scale, {x: ICON_SCALE / 1.5, y: ICON_SCALE / 1.5, z: 1, duration: 0.5, overwrite: "auto"});
             --activeIconIndex;
             gsap.to(iconGroupGroup.children[activeIconIndex].scale, {x: ICON_SCALE, y: ICON_SCALE, z: 1, duration: 0.5, overwrite: "auto"});
-            document.querySelector(".VideoPlayer2").src = iconGroupGroup.children[activeIconIndex].userData.video.src;
-            document.querySelector(".VideoPlayer2").play();
             iconGroupGroup.children[activeIconIndex].userData.video.play();
             gsap.to(iconGroupGroup.position, {x: -iconGroupGroup.children[activeIconIndex].position.x, duration: 1, overwrite: "auto"});
             document.querySelector(".ProjectTitleText").textContent = iconGroupGroup.children[activeIconIndex].userData.title;
             document.querySelector(".ProjectDescriptionText").textContent = iconGroupGroup.children[activeIconIndex].userData.description;
+            fadeDOMIconGlow(iconGroupGroup.children[activeIconIndex].userData.video.src);
             break;
           case document.querySelector(".Button5"):
             diveIn(iconGroupGroup.children[activeIconIndex].userData.html);
@@ -436,17 +492,13 @@ window.addEventListener("mousedown", (event) => {
             gsap.to(iconGroupGroup.children[activeIconIndex].scale, {x: ICON_SCALE / 1.5, y: ICON_SCALE / 1.5, z: 1, duration: 0.5, overwrite: "auto"});
             ++activeIconIndex;
             gsap.to(iconGroupGroup.children[activeIconIndex].scale, {x: ICON_SCALE, y: ICON_SCALE, z: 1, duration: 0.5, overwrite: "auto"});
-            document.querySelector(".VideoPlayer2").src = iconGroupGroup.children[activeIconIndex].userData.video.src;
-            document.querySelector(".VideoPlayer2").play();
             iconGroupGroup.children[activeIconIndex].userData.video.play();
             gsap.to(iconGroupGroup.position, {x: -iconGroupGroup.children[activeIconIndex].position.x, duration: 1, overwrite: "auto"});
             document.querySelector(".ProjectTitleText").textContent = iconGroupGroup.children[activeIconIndex].userData.title;
             document.querySelector(".ProjectDescriptionText").textContent = iconGroupGroup.children[activeIconIndex].userData.description;
+            fadeDOMIconGlow(iconGroupGroup.children[activeIconIndex].userData.video.src);
             break;
         }
-        /*[".HomeGroup", ".ProjectsGroup", ".AboutGroup"].forEach((element) => {
-          gsap.to(element, {opacity: element === buttonGroup ? 1 : 0, duration: 0.5, overwrite: "auto"});
-        });*/
         break;
       }
       case DOMHover === document.querySelector(".Filter1Div") && filterButtonsActive: {
@@ -503,7 +555,6 @@ window.addEventListener("mousedown", (event) => {
           tl.to(iconGroup.scale, {x: ICON_SCALE / 1.5, y: ICON_SCALE / 1.5, z: 1, duration: 0.5, overwrite: "auto"})
             .to(iconGroup.position, {z: -0.15, duration: 0.5, overwrite: true}, "<")
             .to(iconGroup.userData.iconHover.material, {opacity: 0, duration: 1, overwrite: "auto"}, "<")
-            .to(iconGroup.userData.iconOverlay.material, {opacity: 1, duration: 1, overwrite: "auto"}, "<")
             .to(iconGroup.userData.iconScreen.material.map.repeat, {x: iconGroup.userData.screenTextureRepeatX, y: 1, duration: 0.5, overwrite: "auto"}, "<")
             .to(iconGroup.userData.iconScreen.material.map.offset, {x: iconGroup.userData.screenTextureOffsetX, y: 0, duration: 0.5, overwrite: "auto"}, "<")
             .to(iconGroup.userData.iconScreen.material, {opacity: 1, duration: 1, overwrite: "auto"}, "<").call(() => {
@@ -522,6 +573,8 @@ window.addEventListener("mousedown", (event) => {
 
 window.addEventListener("mouseup", () => {
   mouseDown = false;
+  if (clickedDOM)
+    clickedDOM = null;
   if (dragging && !userLock) {
     switch (true) {
       case dragging.name === "IconGroup":
@@ -531,7 +584,7 @@ window.addEventListener("mouseup", () => {
   }});
 
 window.addEventListener("resize", () => {
-  if (userLock && !mobileUser)
+  if (userLock && !MOBILE_USER)
     location.reload();
   else {
     resize();
@@ -580,6 +633,13 @@ function getMouseWorldPosition() {
 
 function scrollTrigger() {
 
+  //SCROLL BUTTON
+  const scrollButtonStart = 0;
+  const scrollButtonEnd = 1;
+  let scrollButtonState = (scrollYWrapper.y - scrollButtonStart) / (scrollButtonEnd - scrollButtonStart);
+  gsap.set(".ScrollButton", {top: `${scrollButtonState * 92 + 4}%`, overwrite: "auto"});
+
+
   //FILTER BUTTONS
   const filterTextDivDivStart = 0.3;
   const filterTextDivDivEnd = 0.5;
@@ -603,15 +663,21 @@ function scrollTrigger() {
   }
   glassMaterial.opacity = iconScreenState / 2;
 
-  //LAPTOP GLOW
-  const laptopGlowStart = 0;
-  const laptopGlowEnd = 0.4;
-  let laptopGlowState = (laptopGlowEnd - scrollYWrapper.y) / (laptopGlowEnd - laptopGlowStart);
-  switch (true) {
-    case scrollYWrapper.y < laptopGlowStart: laptopGlowState = 1; break;
-    case scrollYWrapper.y > laptopGlowEnd: laptopGlowState = 0; break;
+  //LAPTOP GLOW && ROOT ANIMATION
+  {
+    const start = 0;
+    const end = 0.2;
+    let state = (end - scrollYWrapper.y) / (end - start);
+    switch (true) {
+      case scrollYWrapper.y < start: state = 1; break;
+      case scrollYWrapper.y > end: state = 0; break;
+    }
+    gsap.set(".VideoPlayer1", {opacity: state, overwrite: "auto"});
+    gsap.set(root.position, {x: state * ROOT_START_POSITION.x, y: state * ROOT_START_POSITION.y, z: state * ROOT_START_POSITION.z, overwrite: "auto"});
+    gsap.set(root.rotation, {x: Math.PI + (state * (ROOT_START_ROTATION.x - Math.PI)),
+      y: Math.PI + (state * (ROOT_START_ROTATION.y - Math.PI)),
+      z: Math.PI + (state * (ROOT_START_ROTATION.z - Math.PI)), overwrite: "auto"});
   }
-  gsap.set(".VideoPlayer1", {opacity: laptopGlowState, overwrite: "auto"});
 
   //LAPTOP HINGE
   //region
@@ -625,46 +691,68 @@ function scrollTrigger() {
   laptopHinge.rotation.x = hingeState * Math.PI * 115 / 180;
   //endregion
 
-  //TITLE FRAME
-  //region
-  const titleStart = 0.2;
-  const titleEnd = 0.4;
-  let titleState = (titleEnd - scrollYWrapper.y) / (titleEnd - titleStart);
-  switch (true) {
-    case scrollYWrapper.y < titleStart: titleState = 1; break;
-    case scrollYWrapper.y > titleEnd: titleState = 0; break;
-  }
-  gsap.set(".TitleFrameDiv", {opacity: titleState, overwrite: "auto"});
-  //endregion
-
   //CUBE
-  const cubeStart = 0.2;
+  /*const cubeStart = 0.2;
   const cubeEnd = 0.4;
   let cubeState = (scrollYWrapper.y - cubeStart) / (cubeEnd - cubeStart);
   switch (true) {
     case scrollYWrapper.y < cubeStart: cubeState = 0; break;
     case scrollYWrapper.y > cubeEnd: cubeState = 1; break;
   }
-  gsap.set(root.position, {y: -cubeState - 0.1, overwrite: "auto"});
+  gsap.set(root.position, {y: -cubeState - 0.1, overwrite: "auto"});*/
 
   //ICONS
   switch (true) {
-    case scrollYWrapper.y < 0.3 || scrollYWrapper.y > 0.6:
-      if (projectsFrameActive) {
-        printDebug("projectsFrameActive set to false");
-        removeIcons();
-        projectsFrameActive = false;
-        gsap.to(".ProjectsGroup", {opacity: 0, filter: "blur(1vh)", duration: 0.5, overwrite: "auto"});
-      }
+    case scrollYWrapper.y === 0 && activeSection !== Sections.START:
+      printDebug("activeSection set to START");
+      activeSection = Sections.START;
+      gsap.to(cube.position, {y: "+=0.02", duration: 10, yoyo: true, repeat: -1, ease: "sine.inOut", overwrite: "auto"});
+      gsap.to(cube.rotation, {x: `+=${Math.PI * -5 / 180}`, duration: 10, yoyo: true, repeat: -1, ease: "sine.inOut", overwrite: "auto"});
+      gsap.to(cube.rotation, {y: `+=${Math.PI * 5 / 180}`, duration: 20, yoyo: true, repeat: -1, ease: "sine.inOut", overwrite: "auto"});
+      gsap.to(cube.rotation, {z: `+=${Math.PI * 3 / 180}`, duration: 30, yoyo: true, repeat: -1, ease: "sine.inOut", overwrite: "auto"});
       break;
-    case scrollYWrapper.y > 0.3:
-      if (!projectsFrameActive) {
-        printDebug("projectsFrameActive set to true");
-        spawnIcons();
-        projectsFrameActive = true;
-        gsap.to(".ProjectsGroup", {opacity: 1, filter: "blur(0vh)", duration: 0.5, overwrite: "auto"});
-      }
+    case scrollYWrapper.y > 0 && scrollYWrapper.y < 0.2 && activeSection === Sections.START:
+      printDebug("activeSection set to HOME (IN)");
+      activeSection = Sections.HOME;
+      gsap.killTweensOf(cube.position);
+      gsap.killTweensOf(cube.rotation);
+      root.position.set(0, 0, 0);
+      root.rotation.set(0, 0, 0);
+      //relativeRootPosition.copy(root.position);
+      //relativeRootRotation.copy(root.rotation);
+      gsap.to(".TitleFrameDiv", {opacity: 1, duration: 0.5, overwrite: "auto"});
       break;
+    case scrollYWrapper.y > 0 && scrollYWrapper.y < 0.2 && (activeSection === Sections.PROJECTS || activeSection === Sections.TRANSITION1):
+      printDebug("activeSection set to HOME (OUT)");
+      activeSection = Sections.HOME;
+      gsap.killTweensOf(cube.position);
+      gsap.killTweensOf(cube.rotation);
+      relativeRootPosition.copy(ROOT_START_POSITION);
+      relativeRootRotation.copy(ROOT_START_ROTATION);
+      removeIcons();
+      gsap.to(".ProjectsGroup", {opacity: 0, filter: "blur(1vh)", duration: 0.5, overwrite: "auto"});
+      gsap.to(cube.scale, {x: 1, y: 1, z: 1, duration: 0.5, overwrite: "auto"});
+      break;
+    case scrollYWrapper.y > 0.2 && activeSection === Sections.HOME:
+      printDebug("activeSection set to TRANSITION1");
+      activeSection = Sections.TRANSITION1;
+      const tl1 = gsap.timeline();
+      tl1.to(cube.position, {y: "-=0.01", duration: 0.1, overwrite: "auto"}).to(cube.position, {y: "+=0.01", duration: 0.1, overwrite: "auto"});
+      const tl2 = gsap.timeline();
+      tl2.to(cube.rotation, {x: `-=${Math.PI * 2 / 180}`, duration: 0.1, overwrite: "auto"}).to(cube.rotation, {x: `+=${Math.PI * 2 / 180}`, duration: 0.1, overwrite: "auto"});
+      gsap.to(".TitleFrameDiv", {opacity: 0, duration: 0.5, overwrite: "auto"});
+      break;
+    case scrollYWrapper.y > 0.3 && scrollYWrapper.y < 0.6 && activeSection !== Sections.PROJECTS:
+      printDebug("activeSection set to PROJECTS");
+      activeSection = Sections.PROJECTS;
+      spawnIcons();
+      gsap.to(".ProjectsGroup", {opacity: 1, filter: "blur(0vh)", duration: 0.5, overwrite: "auto"});
+      gsap.to(cube.scale, {x: 0, y: 0, z: 0, duration: 0.2, overwrite: "auto"});
+      break;
+    case scrollYWrapper.y > 0.6 && activeSection !== Sections.ABOUT:
+      printDebug("activeSection set to ABOUT");
+      activeSection = Sections.ABOUT;
+      removeIcons();
   }
 
   //ABOUT FRAME
@@ -711,11 +799,7 @@ function scrollCameraBy(deltaY, duration) {
 }
 
 function scrollCameraTo(Y, duration) {
-  //cameraWrapper.centeredTopDiv.style.willChange = "transform";
-  //cameraWrapper.centeredBottomDiv.style.willChange = "transform";
-  gsap.to(scrollYWrapper, {y: -Y, duration: duration, overwrite: "auto", onUpdate: scrollTrigger});
-  //gsap.to(cameraWrapper.centeredTopDiv, {y: Y * divPositionMultiplier, duration: duration, overwrite: "auto", onComplete: () => {cameraWrapper.centeredTopDiv.style.willChange = "auto"}});
-  //gsap.to(cameraWrapper.centeredBottomDiv, {y: Y * divPositionMultiplier, duration: duration, overwrite: "auto", onComplete: () => {cameraWrapper.centeredBottomDiv.style.willChange = "auto"}});
+  gsap.to(scrollYWrapper, {y: Y, duration: duration, overwrite: "auto", onUpdate: scrollTrigger});
 }
 
 let s = 1;
@@ -850,8 +934,11 @@ function spawnIconsHelper(boolean) {
   gsap.set(iconGroupGroup.position, {x: -iconGroupGroup.children[activeIconIndex].position.x, overwrite: "auto"});
   document.querySelector(".ProjectTitleText").textContent = iconGroupGroup.children[activeIconIndex].userData.title;
   document.querySelector(".ProjectDescriptionText").textContent = iconGroupGroup.children[activeIconIndex].userData.description;
-  document.querySelector(".IconGlow1").src = iconGroupGroup.children[activeIconIndex].userData.video.src;
-  gsap.to(".IconGlow1", {opacity: 1, duration: 0.5, overwrite: "auto"});
+  switch (DOMIconGlowWrapper.activeIndex) {
+    case 0: gsap.to(DOMIconGlowWrapper["1"], {opacity: 0.5, duration: 0.5, overwrite: "auto"}); break;
+    case 1: gsap.to(DOMIconGlowWrapper["2"], {opacity: 0.5, duration: 0.5, overwrite: "auto"}); break;
+  }
+  fadeDOMIconGlow(iconGroupGroup.children[activeIconIndex].userData.video.src);
 }
 
 function removeIcons() {
@@ -863,19 +950,23 @@ function removeIcons() {
         iconGroupGroup.remove(child);
       }
     });
+    switch (DOMIconGlowWrapper.activeIndex) {
+      case 0: gsap.to(DOMIconGlowWrapper["1"], {opacity: 0, duration: 0.5, overwrite: "auto"}); break;
+      case 1: gsap.to(DOMIconGlowWrapper["2"], {opacity: 0, duration: 0.5, overwrite: "auto"}); break;
+    }
   });
 }
 
 function onLoad() {
-  scrollTrigger();
   gsap.set(cameraWrapper.camera.position, {z: -1, overwrite: "auto"});
   gsap.set(cameraWrapper.camera.rotation, {y: Math.PI, overwrite: "auto"});
   gsap.set(cameraWrapper.centeredTopDiv, {xPercent: -50, yPercent: -50, y: 0, overwrite: "auto"});
   gsap.set(cameraWrapper.centeredBottomDiv, {xPercent: -50, yPercent: -50, y: 0, overwrite: "auto"});
   gsap.to(".LoadingDiv", {opacity: 0, duration: 4, overwrite: "auto"});
-  gsap.set(root.position, {x: -0.2, y: -0.1, z: 0.2, overwrite: "auto"});
-  gsap.set(root.rotation, {y: Math.PI * 210 / 180, overwrite: "auto"});
-  gsap.set(root.rotation, {x: Math.PI * 170 / 180, overwrite: "auto"});
+  root.position.copy(ROOT_START_POSITION);
+  root.rotation.copy(ROOT_START_ROTATION);
+  relativeRootPosition.copy(ROOT_START_POSITION);
+  relativeRootRotation.copy(ROOT_START_ROTATION);
   document.querySelector(".BackgroundVideo").src = "https://PortfolioPullZone.b-cdn.net/LandingPage/BackgroundStrip.webm";
   laptopVideo.src = playlist[0];
   laptopVideo.play();
@@ -883,19 +974,35 @@ function onLoad() {
   videoPlayer1.play();
   iconArray.forEach((child) => {child.video.play(); setTimeout(() => {child.video.pause()}, 1000)});
   finishedLoading = true;
-  setTimeout(() => {
-    userLock = false;
-    gsap.set(".LoadingDiv", {pointerEvents: "none", overwrite: "auto"})}, 2000
-  );
+  userLock = false;
+  gsap.set(".LoadingDiv", {pointerEvents: "none", overwrite: "auto"});
+  scrollTrigger();
 }
 
 function printDebug(log) {
   const div = document.querySelector(".Debug2");
   const line = new Error().stack.split("\n")[2].match(/:(\d+):\d+\)?$/)[1];
-  if (div.innerHTML.length > 300)
+  if (div.innerHTML.length > 1000)
     gsap.set(div, {innerHTML: ""});
   else {
     gsap.set(div, {innerHTML: `${div.innerHTML}<br>${log} [${line}]`});
+  }
+}
+
+function fadeDOMIconGlow(src) {
+  switch (DOMIconGlowWrapper.activeIndex) {
+    case 0:
+      DOMIconGlowWrapper["2"].src = src;
+      gsap.to(DOMIconGlowWrapper["1"], {opacity: 0, duration: 0.5, overwrite: "auto"});
+      gsap.to(DOMIconGlowWrapper["2"], {opacity: 0.5, duration: 0.5, overwrite: "auto"});
+      DOMIconGlowWrapper.activeIndex = 1;
+      break;
+    case 1:
+      DOMIconGlowWrapper["1"].src = src;
+      gsap.to(DOMIconGlowWrapper["1"], {opacity: 0.5, duration: 0.5, overwrite: "auto"});
+      gsap.to(DOMIconGlowWrapper["2"], {opacity: 0, duration: 0.5, overwrite: "auto"});
+      DOMIconGlowWrapper.activeIndex = 0;
+      break;
   }
 }
 
@@ -905,7 +1012,6 @@ class Icon {
     this.title = title;
     this.description = description;
     this.html = html;
-    this.originalPosition = new THREE.Vector3();
     this.object = iconComponentGroup.clone();
     this.object.scale.set(ICON_SCALE, ICON_SCALE, 1);
     this.object.userData = this;
@@ -914,6 +1020,7 @@ class Icon {
     this.iconScreen = this.object.children.find((child) => child.name === "IconScreen");
     this.iconOverlay = this.object.children.find((child) => child.name === "IconOverlay");
     this.iconHover = this.object.children.find((child) => child.name === "IconHover");
+    this.DOMTagArray = [];
 
     //ICON HITBOX
     raycastTargetArray.push(this.iconHitbox);
@@ -973,53 +1080,20 @@ class Icon {
         case projectType.TECHNICAL_ART: h2cFilterDiv.style.backgroundColor = "#ffff69"; break;
         case projectType.ART: h2cFilterDiv.style.backgroundColor = "lightcoral"; break;
       }
-      const h2cTitleDiv = document.querySelector(".h2cTitle");
-      h2cTitleDiv.textContent = title;
-      const h2cDescriptionDiv = document.querySelector(".h2cDescription");
-      h2cDescriptionDiv.textContent = description;
-      Object.values(h2cTags).forEach((tag) => {tag.style.opacity = 0});
-      let currentTagPosition = [50, 50];
-      function placeTag(tag) {
-        tag.style.opacity = 1;
-        if (currentTagPosition[0] + tag.getBoundingClientRect().width + 15 > 900) {
-          currentTagPosition[0] = 50;
-          currentTagPosition[1] += tag.getBoundingClientRect().height + 15
-        }
-        tag.style.left = currentTagPosition[0] + "px";
-        tag.style.top = currentTagPosition[1] + "px";
-        currentTagPosition[0] += tag.getBoundingClientRect().width + 15
-      }
-      tags.forEach((tag) => {
-        if (tag in h2cTags)
-          placeTag(h2cTags[tag]);
-      });
-
       const h2cBackgroundDiv = document.querySelector(".h2cBackgroundDiv");
-      const h2cTextDiv = document.querySelector(".h2cTextDiv");
       const h2cForegroundDiv = document.querySelector(".h2cForegroundDiv");
       const h2cBorderDiv = document.querySelector(".h2cBorderDiv");
       Promise.all([
         html2canvas(h2cBackgroundDiv, {scale: 1, backgroundColor: null, useCORS: true, ignoreElements: (element) => element.tagName === "VIDEO", width: h2cBackgroundDiv.offsetWidth, height: h2cBackgroundDiv.offsetHeight}),
-        html2canvas(h2cTextDiv, {scale: 1, backgroundColor: null, useCORS: true, ignoreElements: (element) => element.tagName === "VIDEO", width: h2cTextDiv.offsetWidth, height: h2cTextDiv.offsetHeight}),
         html2canvas(h2cForegroundDiv, {scale: 1, backgroundColor: null, useCORS: true, ignoreElements: (element) => element.tagName === "VIDEO", width: h2cForegroundDiv.offsetWidth, height: h2cForegroundDiv.offsetHeight}),
         html2canvas(h2cBorderDiv, {scale: 1, backgroundColor: null, useCORS: true, ignoreElements: (element) => element.tagName === "VIDEO", width: h2cBorderDiv.offsetWidth, height: h2cBorderDiv.offsetHeight})
-      ]).then(([backgroundCanvas, textCanvas, foregroundCanvas, borderCanvas]) => {
-
-        let textCompCanvas = document.createElement("canvas");
-        textCompCanvas.width = 1000;
-        textCompCanvas.height = 1000;
-
-        textCompCanvas.getContext("2d").filter = "blur(3px)";
-        textCompCanvas.getContext("2d").drawImage(textCanvas, 0, 0);
-        textCompCanvas.getContext("2d").filter = "none";
-        textCompCanvas.getContext("2d").drawImage(textCanvas, 0, 0);
+      ]).then(([backgroundCanvas, foregroundCanvas, borderCanvas]) => {
 
         let backgroundCompCanvas = document.createElement("canvas");
         backgroundCompCanvas.width = 1000;
         backgroundCompCanvas.height = 1000;
 
         backgroundCompCanvas.getContext("2d").drawImage(backgroundCanvas, 0, 0);
-        backgroundCompCanvas.getContext("2d").drawImage(textCompCanvas, 0, 0);
 
         let foregroundCompCanvas = document.createElement("canvas");
         foregroundCompCanvas.width = 1000;
@@ -1057,11 +1131,9 @@ class Icon {
         }
 
         backgroundCanvas = null;
-        textCanvas = null;
         foregroundCanvas = null;
         borderCanvas = null;
 
-        textCompCanvas = null;
         backgroundCompCanvas = null;
         foregroundCompCanvas = null;
         borderCompCanvas = null;
@@ -1078,6 +1150,21 @@ class Icon {
     else {
       this.iconOverlay.material = new THREE.MeshBasicMaterial({map: bakedOverlayTexture, transparent: true});
     }
+
+    //TESTING
+    let testincr = 0;
+    tags.forEach((tag) => {
+      if (this.type === projectType.PROGRAMMING) {
+        const clonedTag = h2cTags["html"].cloneNode(true);
+        clonedTag.style.opacity = 1;
+        clonedTag.querySelector(".h2cTag").textContent = tag;
+        clonedTag.style.left = `${testincr}%`;
+        clonedTag.style.top = `-20%`;
+        testincr += 20;
+        this.DOMTagArray.push(clonedTag);
+        document.querySelector(".ProjectInfoDiv").append(clonedTag);
+      }
+    })
 
     //ICON HOVER
     const h2cHoverDiv = document.querySelector(".h2cHoverDiv");
@@ -1096,11 +1183,7 @@ class Icon {
 //VIDEO PLAYER
 // region
 
-const laptopVideo = document.createElement("video");
 const videoPlayer1 = document.querySelector(".VideoPlayer1");
-laptopVideo.crossOrigin = "anonymous";
-laptopVideo.preload = "auto";
-laptopVideo.muted = true;
 
 const playlist = ["https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/KineticRush2.webm", "https://PortfolioPullZone.b-cdn.net/LandingPage/Reel/ChasmsCall2.webm"];
 let currentIndex = 0;
@@ -1120,20 +1203,8 @@ laptopVideo.addEventListener("ended", () => {
 });
 
 laptopVideo.addEventListener("loadedmetadata", () => {
-  const laptopScreenTexture = new THREE.VideoTexture(laptopVideo);
-  laptopScreenTexture.flipY = false;
-  laptopScreenTexture.colorSpace = THREE.SRGBColorSpace;
-  laptopScreenTexture.minFilter = THREE.LinearFilter;
-  laptopScreenTexture.magFilter = THREE.LinearFilter;
-  laptopScreenTexture.wrapS = THREE.RepeatWrapping;
-  laptopScreenTexture.wrapT = THREE.RepeatWrapping;
-  laptopScreenTexture.generateMipmaps = false;
-  laptopScreen.material = new THREE.MeshBasicMaterial({map: laptopScreenTexture, transparent: true});
   const aspectRatio = laptopVideo.videoWidth / laptopVideo.videoHeight;
-  const screenTextureRepeatX = 1 / aspectRatio;
-  const screenTextureOffsetX = (1 - 1 / aspectRatio) / 2;
-  laptopScreen.material.map.repeat.set(screenTextureRepeatX, 1);
-  laptopScreen.material.map.offset.set(screenTextureOffsetX, 0);
+  gsap.set(laptopScreen.scale, {z: 1 / aspectRatio, overwrite: "auto"});
 });
 //endregion
 
@@ -1196,21 +1267,23 @@ document.querySelectorAll(".LogoDiv")[1].addEventListener("click", () => {
 });
 document.querySelectorAll(".MainButton").forEach((button) => {
   button.addEventListener("mouseenter", () => {
-    gsap.to(button, {duration: 0.6, y: -6, scale: 1.02, boxShadow:"0 0 10px rgba(255,255,255,0.9), inset 2px 2px 0 rgba(255,255,255,0.2)", overwrite: "auto"});
+    gsap.to(button, {duration: 0.6, y: -6, scale: 1.02, boxShadow:"0 0 10px rgba(255, 255, 255, 0.9), inset 2px 2px 0 rgba(255, 255, 255, 0.2)", overwrite: "auto"});
   });
 });
 document.querySelectorAll(".MainButton").forEach((button) => {
   button.addEventListener("mouseleave", () => {
-    gsap.to(button, {duration: 1, y: 0, scale: 1, boxShadow:"0 0 50px rgba(0,0,0,0.9s), inset 2px 2px 0 rgba(255,255,255,0.2)", overwrite: "auto"});
+    gsap.to(button, {duration: 1, y: 0, scale: 1, boxShadow:"0 0 50px rgba(0, 0, 0, 0.9), inset 2px 2px 0 rgba(255, 255, 255, 0.2)", overwrite: "auto"});
   });
 });
 
 document.querySelectorAll(".MainButton").forEach((button) => {
-  button.addEventListener("mouseenter", () => {DOMHover = button;});
+  button.addEventListener("mouseenter", () => {DOMHover = button});
 });
 document.querySelectorAll(".MainButton").forEach((button) => {
-  button.addEventListener("mouseleave", () => {DOMHover = null;});
+  button.addEventListener("mouseleave", () => {DOMHover = null});
 });
+document.querySelector(".ScrollBarDiv").addEventListener("mouseenter", () => {DOMHover = document.querySelector(".ScrollBarDiv")});
+document.querySelector(".ScrollBarDiv").addEventListener("mouseleave", () => {DOMHover = null});
 //endregion
 
 resize();
