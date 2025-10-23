@@ -19,7 +19,7 @@ let iconParameters = [
 //CONSTANTS
 //region
 //VERY IMPORTANT
-const BAKE_ICON_OVERLAY = true;
+const BAKE_ICON_OVERLAY = false;
 const EXPORT_TEXTURES = false;
 printDebug(BAKE_ICON_OVERLAY ? "Baking textures..." : "Skipped baking textures!");
 
@@ -33,9 +33,7 @@ const DEFAULT_FONT_SIZE = 15;
 const ICON_GROUP_SPAWNER_INITIAL_POSITION = new THREE.Vector3(0, 0, 0);
 const ICON_GAP_HORIZONTAL = 0.175;
 const ICON_SCALE = 2;
-const CUBE_Y_OFFSET = -0.023985;
-const CUBE_Z_OFFSET = 0.138446;
-const ROOT_START_POSITION = new THREE.Vector3(-0.15, -0.022 + CUBE_Y_OFFSET, -0.25 + CUBE_Z_OFFSET);
+const ROOT_START_POSITION = new THREE.Vector3(-0.05, -0.07, -0.25);
 const ROOT_START_ROTATION = new THREE.Euler(Math.PI * 170 / 180, Math.PI * 210 / 180, Math.PI);
 //endregion
 
@@ -633,6 +631,61 @@ function getMouseWorldPosition() {
 
 function scrollTrigger() {
 
+  //ICONS
+  switch (true) {
+    case scrollYWrapper.y === 0 && activeSection !== Sections.START:
+      printDebug("activeSection set to START");
+      activeSection = Sections.START;
+      gsap.to(".ProjectsGroup", {opacity: 0, filter: "blur(1vh)", duration: 0.5, overwrite: "auto"});
+      gsap.to(root.position, {y: "+=0.02", duration: 10, yoyo: true, repeat: -1, ease: "sine.inOut", overwrite: "auto"});
+      gsap.to(root.rotation, {x: `+=${Math.PI * -5 / 180}`, duration: 10, yoyo: true, repeat: -1, ease: "sine.inOut", overwrite: "auto"});
+      gsap.to(root.rotation, {y: `+=${Math.PI * 5 / 180}`, duration: 20, yoyo: true, repeat: -1, ease: "sine.inOut", overwrite: "auto"});
+      gsap.to(root.rotation, {z: `+=${Math.PI * 30 / 180}`, duration: 30, yoyo: true, repeat: -1, ease: "sine.inOut", overwrite: "auto"});
+      break;
+    case scrollYWrapper.y > 0 && scrollYWrapper.y < 0.2 && activeSection === Sections.START:
+      printDebug("activeSection set to HOME (IN)");
+      activeSection = Sections.HOME;
+      gsap.killTweensOf(cube.position);
+      gsap.killTweensOf(cube.rotation);
+      relativeRootPosition.copy(root.position);
+      relativeRootRotation.copy(root.rotation);
+      printDebug("relativeRoot set");
+      gsap.to(".TitleFrameDiv", {opacity: 1, duration: 0.5, overwrite: "auto"});
+      break;
+    case scrollYWrapper.y > 0 && scrollYWrapper.y < 0.2 && (activeSection === Sections.PROJECTS || activeSection === Sections.TRANSITION1):
+      printDebug("activeSection set to HOME (OUT)");
+      activeSection = Sections.HOME;
+      gsap.killTweensOf(root.position);
+      gsap.killTweensOf(root.rotation);
+      relativeRootPosition.copy(ROOT_START_POSITION);
+      relativeRootRotation.copy(ROOT_START_ROTATION);
+      printDebug("relativeRoot reset");
+      removeIcons();
+      gsap.to(".ProjectsGroup", {opacity: 0, filter: "blur(1vh)", duration: 0.5, overwrite: "auto"});
+      gsap.to(cube.scale, {x: 1, y: 1, z: 1, duration: 0.5, overwrite: "auto"});
+      break;
+    case scrollYWrapper.y > 0.2 && activeSection === Sections.HOME:
+      printDebug("activeSection set to TRANSITION1");
+      activeSection = Sections.TRANSITION1;
+      const tl1 = gsap.timeline();
+      tl1.to(cube.position, {y: "-=0.01", duration: 0.1, overwrite: "auto"}).to(cube.position, {y: "+=0.01", duration: 0.1, overwrite: "auto"});
+      const tl2 = gsap.timeline();
+      tl2.to(cube.rotation, {x: `-=${Math.PI * 2 / 180}`, duration: 0.1, overwrite: "auto"}).to(cube.rotation, {x: `+=${Math.PI * 2 / 180}`, duration: 0.1, overwrite: "auto"});
+      gsap.to(".TitleFrameDiv", {opacity: 0, duration: 0.5, overwrite: "auto"});
+      break;
+    case scrollYWrapper.y > 0.3 && scrollYWrapper.y < 0.6 && activeSection !== Sections.PROJECTS:
+      printDebug("activeSection set to PROJECTS");
+      activeSection = Sections.PROJECTS;
+      spawnIcons();
+      gsap.to(".ProjectsGroup", {opacity: 1, filter: "blur(0vh)", duration: 0.5, overwrite: "auto"});
+      gsap.to(cube.scale, {x: 0, y: 0, z: 0, duration: 0.2, overwrite: "auto"});
+      break;
+    case scrollYWrapper.y > 0.6 && activeSection !== Sections.ABOUT:
+      printDebug("activeSection set to ABOUT");
+      activeSection = Sections.ABOUT;
+      removeIcons();
+  }
+
   //SCROLL BUTTON
   const scrollButtonStart = 0;
   const scrollButtonEnd = 1;
@@ -673,10 +726,10 @@ function scrollTrigger() {
       case scrollYWrapper.y > end: state = 0; break;
     }
     gsap.set(".VideoPlayer1", {opacity: state, overwrite: "auto"});
-    gsap.set(root.position, {x: state * ROOT_START_POSITION.x, y: state * ROOT_START_POSITION.y, z: state * ROOT_START_POSITION.z, overwrite: "auto"});
-    gsap.set(root.rotation, {x: Math.PI + (state * (ROOT_START_ROTATION.x - Math.PI)),
-      y: Math.PI + (state * (ROOT_START_ROTATION.y - Math.PI)),
-      z: Math.PI + (state * (ROOT_START_ROTATION.z - Math.PI)), overwrite: "auto"});
+    gsap.set(root.position, {x: state * relativeRootPosition.x, y: state * relativeRootPosition.y, z: state * relativeRootPosition.z, overwrite: "auto"});
+    gsap.set(root.rotation, {x: Math.PI + (state * (relativeRootRotation.x - Math.PI)),
+      y: Math.PI + (state * (relativeRootRotation.y - Math.PI)),
+      z: Math.PI + (state * (relativeRootRotation.z - Math.PI)), overwrite: "auto"});
   }
 
   //LAPTOP HINGE
@@ -690,70 +743,6 @@ function scrollTrigger() {
   }
   laptopHinge.rotation.x = hingeState * Math.PI * 115 / 180;
   //endregion
-
-  //CUBE
-  /*const cubeStart = 0.2;
-  const cubeEnd = 0.4;
-  let cubeState = (scrollYWrapper.y - cubeStart) / (cubeEnd - cubeStart);
-  switch (true) {
-    case scrollYWrapper.y < cubeStart: cubeState = 0; break;
-    case scrollYWrapper.y > cubeEnd: cubeState = 1; break;
-  }
-  gsap.set(root.position, {y: -cubeState - 0.1, overwrite: "auto"});*/
-
-  //ICONS
-  switch (true) {
-    case scrollYWrapper.y === 0 && activeSection !== Sections.START:
-      printDebug("activeSection set to START");
-      activeSection = Sections.START;
-      gsap.to(cube.position, {y: "+=0.02", duration: 10, yoyo: true, repeat: -1, ease: "sine.inOut", overwrite: "auto"});
-      gsap.to(cube.rotation, {x: `+=${Math.PI * -5 / 180}`, duration: 10, yoyo: true, repeat: -1, ease: "sine.inOut", overwrite: "auto"});
-      gsap.to(cube.rotation, {y: `+=${Math.PI * 5 / 180}`, duration: 20, yoyo: true, repeat: -1, ease: "sine.inOut", overwrite: "auto"});
-      gsap.to(cube.rotation, {z: `+=${Math.PI * 3 / 180}`, duration: 30, yoyo: true, repeat: -1, ease: "sine.inOut", overwrite: "auto"});
-      break;
-    case scrollYWrapper.y > 0 && scrollYWrapper.y < 0.2 && activeSection === Sections.START:
-      printDebug("activeSection set to HOME (IN)");
-      activeSection = Sections.HOME;
-      gsap.killTweensOf(cube.position);
-      gsap.killTweensOf(cube.rotation);
-      root.position.set(0, 0, 0);
-      root.rotation.set(0, 0, 0);
-      //relativeRootPosition.copy(root.position);
-      //relativeRootRotation.copy(root.rotation);
-      gsap.to(".TitleFrameDiv", {opacity: 1, duration: 0.5, overwrite: "auto"});
-      break;
-    case scrollYWrapper.y > 0 && scrollYWrapper.y < 0.2 && (activeSection === Sections.PROJECTS || activeSection === Sections.TRANSITION1):
-      printDebug("activeSection set to HOME (OUT)");
-      activeSection = Sections.HOME;
-      gsap.killTweensOf(cube.position);
-      gsap.killTweensOf(cube.rotation);
-      relativeRootPosition.copy(ROOT_START_POSITION);
-      relativeRootRotation.copy(ROOT_START_ROTATION);
-      removeIcons();
-      gsap.to(".ProjectsGroup", {opacity: 0, filter: "blur(1vh)", duration: 0.5, overwrite: "auto"});
-      gsap.to(cube.scale, {x: 1, y: 1, z: 1, duration: 0.5, overwrite: "auto"});
-      break;
-    case scrollYWrapper.y > 0.2 && activeSection === Sections.HOME:
-      printDebug("activeSection set to TRANSITION1");
-      activeSection = Sections.TRANSITION1;
-      const tl1 = gsap.timeline();
-      tl1.to(cube.position, {y: "-=0.01", duration: 0.1, overwrite: "auto"}).to(cube.position, {y: "+=0.01", duration: 0.1, overwrite: "auto"});
-      const tl2 = gsap.timeline();
-      tl2.to(cube.rotation, {x: `-=${Math.PI * 2 / 180}`, duration: 0.1, overwrite: "auto"}).to(cube.rotation, {x: `+=${Math.PI * 2 / 180}`, duration: 0.1, overwrite: "auto"});
-      gsap.to(".TitleFrameDiv", {opacity: 0, duration: 0.5, overwrite: "auto"});
-      break;
-    case scrollYWrapper.y > 0.3 && scrollYWrapper.y < 0.6 && activeSection !== Sections.PROJECTS:
-      printDebug("activeSection set to PROJECTS");
-      activeSection = Sections.PROJECTS;
-      spawnIcons();
-      gsap.to(".ProjectsGroup", {opacity: 1, filter: "blur(0vh)", duration: 0.5, overwrite: "auto"});
-      gsap.to(cube.scale, {x: 0, y: 0, z: 0, duration: 0.2, overwrite: "auto"});
-      break;
-    case scrollYWrapper.y > 0.6 && activeSection !== Sections.ABOUT:
-      printDebug("activeSection set to ABOUT");
-      activeSection = Sections.ABOUT;
-      removeIcons();
-  }
 
   //ABOUT FRAME
   const aboutStart = 0.8;
